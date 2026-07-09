@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseSkillUrl, formatSkillUrl } from "../../src/core/types.js";
+import { parseSkillUrl } from "../../src/core/types.js";
 
 describe("parseSkillUrl", () => {
   it("parses builtin", () => {
@@ -54,52 +54,5 @@ describe("parseSkillUrl", () => {
   it("throws on invalid url", () => {
     expect(() => parseSkillUrl("npm:some-package")).toThrow(/Invalid skill URL/);
     expect(() => parseSkillUrl("")).toThrow(/Invalid skill URL/);
-  });
-});
-
-describe("formatSkillUrl", () => {
-  it("formats builtin", () => {
-    expect(formatSkillUrl({ type: "builtin" })).toBe("builtin");
-  });
-
-  it("formats github without path or ref", () => {
-    expect(formatSkillUrl({
-      type: "github",
-      owner: "mattpocock",
-      repo: "skills",
-      path: "",
-      ref: "main",
-    })).toBe("github:mattpocock/skills");
-  });
-
-  it("formats github with path", () => {
-    expect(formatSkillUrl({
-      type: "github",
-      owner: "mattpocock",
-      repo: "skills",
-      path: "skills/productivity/grill-me",
-      ref: "main",
-    })).toBe("github:mattpocock/skills/skills/productivity/grill-me");
-  });
-
-  it("formats github with non-main ref", () => {
-    expect(formatSkillUrl({
-      type: "github",
-      owner: "mattpocock",
-      repo: "skills",
-      path: "skills/productivity/grill-me",
-      ref: "v1.0",
-    })).toBe("github:mattpocock/skills/skills/productivity/grill-me@v1.0");
-  });
-
-  it("roundtrips through parse and format", () => {
-    const urls = [
-      "builtin",
-      "github:mattpocock/skills/skills/productivity/grill-me",
-      "github:owner/repo@v2",
-    ];
-    for (const url of urls) {
-      expect(formatSkillUrl(parseSkillUrl(url))).toBe(url);
-    }
   });
 });

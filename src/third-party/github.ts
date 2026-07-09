@@ -1,13 +1,13 @@
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { type SkillSource } from "../core/types.js";
+import {
+  type QuiverConfigSkill,
+  type SkillSource,
+  parseSkillUrl,
+} from "../core/types.js";
 
 const GITHUB_RAW_BASE = "https://raw.githubusercontent.com";
-
-export function getProjectCacheDir(projectDir: string): string {
-  return path.resolve(projectDir, "node_modules/.quiver/cache");
-}
 
 export function getGlobalCacheDir(): string {
   return path.resolve(os.homedir(), ".quiver/cache");
@@ -17,13 +17,22 @@ export async function ensureCacheDir(cacheDir: string): Promise<void> {
   await fs.mkdir(cacheDir, { recursive: true });
 }
 
-export async function isCached(cacheDir: string, skillName: string): Promise<boolean> {
-  try {
-    await fs.access(path.resolve(cacheDir, skillName, "SKILL.md"));
-    return true;
-  } catch {
-    return false;
+/** Fetches every non-builtin skill into the cache. Returns names that failed. */
+export async function fetchThirdPartySkills(
+  skills: QuiverConfigSkill[],
+  cacheDir: string,
+  onProgress?: (name: string) => void
+): Promise<string[]> {
+  const failed: string[] = [];
+  for (const entry of skills.filter((s) => s.url !== "builtin")) {
+    try {
+      await fetchSkill(parseSkillUrl(entry.url), cacheDir);
+      onProgress?.(entry.name);
+    } catch {
+      failed.push(entry.name);
+    }
   }
+  return failed;
 }
 
 export async function fetchSkill(

@@ -11,9 +11,17 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest run",
-    "lint": "tsc --noEmit"
+    "lint": "tsc -p tsconfig.test.json"
   },
-  "keywords": ["ai", "claude-code", "opencode", "copilot", "skills", "prompts", "agents"],
+  "keywords": [
+    "ai",
+    "claude-code",
+    "opencode",
+    "copilot",
+    "skills",
+    "prompts",
+    "agents"
+  ],
   "license": "MIT",
   "dependencies": {
     "@clack/prompts": "^0.9.1",

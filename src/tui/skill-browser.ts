@@ -23,7 +23,6 @@ const CATEGORY_LABEL: Record<SkillCategory, string> = {
 const TYPE_LABEL: Record<SkillType, string> = {
   instruction: "always-on",
   skill: "on-demand",
-  agent: "agent",
 };
 
 function skillOption(s: DiscoveredSkill) {

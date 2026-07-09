@@ -79,57 +79,17 @@ export async function removeSkillFromMarkdown(
   }
 }
 
-export async function removeSkillFiles(
-  baseDir: string,
-  skillName: string,
-  tool: string,
-  scope: "project" | "global" = "project"
-): Promise<void> {
-  const dirs = getSkillDirs(tool, skillName, scope);
-  for (const dir of dirs) {
-    const full = path.isAbsolute(dir) ? dir : path.resolve(baseDir, dir);
+/** Removes a skill's generated files: the shared SKILL.md and the Copilot instruction copy. */
+export async function removeSkillFiles(skillName: string): Promise<void> {
+  const targets = [
+    path.join(os.homedir(), ".claude", "skills", skillName),
+    path.join(os.homedir(), ".copilot", "instructions", `${skillName}.instructions.md`),
+  ];
+  for (const target of targets) {
     try {
-      await fs.rm(full, { recursive: true, force: true });
+      await fs.rm(target, { recursive: true, force: true });
     } catch {
       // ignore
     }
-  }
-}
-
-function getSkillDirs(tool: string, skillName: string, scope: "project" | "global"): string[] {
-  switch (tool) {
-    case "claude":
-      return scope === "global"
-        ? [
-            path.join(os.homedir(), ".claude", "skills", skillName),
-            path.join(os.homedir(), ".claude", "agents", `${skillName}.md`),
-          ]
-        : [
-            `.claude/skills/${skillName}`,
-            `.claude/agents/${skillName}.md`,
-          ];
-    case "opencode":
-      return scope === "global"
-        ? [
-            path.join(os.homedir(), ".config", "opencode", "skills", skillName),
-            path.join(os.homedir(), ".config", "opencode", "agents", `${skillName}.md`),
-          ]
-        : [
-            `.opencode/skills/${skillName}`,
-            `.opencode/agents/${skillName}.md`,
-          ];
-    case "copilot":
-      return scope === "global"
-        ? [
-            path.join(os.homedir(), ".copilot", "instructions", `${skillName}.instructions.md`),
-            path.join(os.homedir(), ".copilot", "agents", `${skillName}.agent.md`),
-          ]
-        : [
-            `.github/instructions/${skillName}.instructions.md`,
-            `.github/prompts/${skillName}.prompt.md`,
-            `.github/agents/${skillName}.agent.md`,
-          ];
-    default:
-      return [];
   }
 }

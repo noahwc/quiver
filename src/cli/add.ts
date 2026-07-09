@@ -1,49 +1,79 @@
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import { readConfig, writeConfig, addSkillToConfig } from "../core/config.js";
+import { type QuiverConfigSkill } from "../core/types.js";
+import {
+  readGlobalConfig,
+  ensureGlobalConfig,
+  addSkillToConfig,
+  writeGlobalConfig,
+} from "../core/config.js";
 import { loadAllSkills } from "../core/skill-loader.js";
-import { build as transpileBuild } from "../transpiler/index.js";
-import { selectSkillsToAdd } from "../tui/skill-browser.js";
-import { fetchThirdPartySkills, ensureProjectCache } from "./shared.js";
+import { build } from "../transpiler/index.js";
+import { selectSkills, selectSkillsToAdd } from "../tui/skill-browser.js";
+import {
+  getGlobalCacheDir,
+  ensureCacheDir,
+  fetchThirdPartySkills,
+} from "../third-party/github.js";
 
 interface AddOptions {
   dryRun?: boolean;
 }
 
-export async function add(projectDir: string, options: AddOptions = {}): Promise<void> {
+export async function add(options: AddOptions = {}): Promise<void> {
   p.intro(pc.bgCyan(pc.black(" quiver add ")));
 
-  const config = await readConfig(projectDir);
+  let config = await readGlobalConfig();
+
+  let newSkills: QuiverConfigSkill[];
   if (!config) {
-    p.log.error("No quiver.json found. Run `quiver init` first.");
-    process.exit(1);
+    newSkills = await selectSkills([]);
+  } else {
+    newSkills = await selectSkillsToAdd(config.skills);
   }
 
-  const newSkills = await selectSkillsToAdd(config.skills);
-
   if (newSkills.length === 0) {
-    p.outro(pc.yellow("No new skills to add."));
+    p.outro(pc.yellow("No skills to add."));
     return;
   }
 
-  let updated = config;
-  for (const skill of newSkills) {
-    updated = addSkillToConfig(updated, skill);
-    p.log.step(`Added ${pc.cyan(skill.name)}`);
+  if (!config) {
+    config = await ensureGlobalConfig(newSkills);
+  } else {
+    for (const skill of newSkills) {
+      config = addSkillToConfig(config, skill);
+      p.log.step(`Added ${pc.cyan(skill.name)}`);
+    }
+    if (!options.dryRun) {
+      await writeGlobalConfig(config);
+    }
   }
 
+  const cacheDir = getGlobalCacheDir();
+  await ensureCacheDir(cacheDir);
+
   if (!options.dryRun) {
-    await writeConfig(projectDir, updated);
+    const s = p.spinner();
+    s.start("Fetching third-party skills...");
+    const failed = await fetchThirdPartySkills(
+      config.skills,
+      cacheDir,
+      (name) => s.message(`Fetched ${name}`),
+    );
+    s.stop(
+      failed.length
+        ? `Failed: ${failed.join(", ")}`
+        : "Third-party skills ready",
+    );
   }
 
-  const cacheDir = await ensureProjectCache(projectDir);
-  await fetchThirdPartySkills(updated.skills, cacheDir, options.dryRun);
-
-  const resolved = await loadAllSkills(updated.skills, cacheDir);
+  const resolved = await loadAllSkills(config.skills, cacheDir);
 
   if (!options.dryRun) {
-    await transpileBuild(resolved, updated.tools, "project");
-    p.log.success("Regenerated output files");
+    await build(resolved);
+    p.log.success("Generated user-level output files");
+  } else {
+    p.log.info("[dry-run] Would generate user-level output files");
   }
 
   p.outro(pc.green("Done!"));

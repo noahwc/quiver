@@ -6,10 +6,6 @@ import {
   type QuiverConfigSkill,
   type SkillCategory,
   type SkillType,
-  type ToolTarget,
-  type SkillSource,
-  parseSkillUrl,
-  formatSkillUrl,
 } from "./types.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -20,7 +16,6 @@ export interface DiscoveredSkill {
   category: SkillCategory;
   type: SkillType;
   "auto-trigger": boolean;
-  targets: ToolTarget[];
   url: string;
 }
 
@@ -75,7 +70,6 @@ export async function discoverThirdPartySkills(): Promise<DiscoveredSkill[]> {
           category: data.category,
           type: data.type,
           "auto-trigger": data["auto-trigger"] ?? true,
-          targets: data.targets ?? ["claude", "opencode", "copilot"],
           url: data.url,
         });
       } catch {
@@ -120,7 +114,6 @@ async function readBuiltinSkill(skillDir: string): Promise<DiscoveredSkill | nul
       category: data.category,
       type: data.type,
       "auto-trigger": data["auto-trigger"] ?? true,
-      targets: data.targets ?? ["claude", "opencode", "copilot"],
       url: "builtin",
     };
   } catch {

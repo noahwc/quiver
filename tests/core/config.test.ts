@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  readConfig,
   addSkillToConfig,
   removeSkillFromConfig,
   globalConfigDir,
@@ -15,7 +14,6 @@ describe("config", () => {
   it("adds and removes skills", () => {
     const base = {
       $schema: "https://quiver.ai/config.json",
-      tools: ["claude" as const],
       skills: [{ name: "no-yap", url: "builtin" }],
     };
 
@@ -35,7 +33,6 @@ describe("config", () => {
   it("does not duplicate skills", () => {
     const base = {
       $schema: "https://quiver.ai/config.json",
-      tools: ["claude" as const],
       skills: [{ name: "no-yap", url: "builtin" }],
     };
 
@@ -57,15 +54,18 @@ describe("config", () => {
     process.env.HOME = tmpDir;
 
     try {
-      const config = await ensureGlobalConfig(["claude" as const], []);
-      expect(config.tools).toEqual(["claude"]);
-      expect(config.skills).toEqual([]);
+      const config = await ensureGlobalConfig([
+        { name: "no-yap", url: "builtin" },
+      ]);
+      expect(config.skills).toEqual([{ name: "no-yap", url: "builtin" }]);
 
       const raw = await fs.readFile(path.resolve(tmpDir, ".quiver", "quiver.json"), "utf-8");
-      expect(JSON.parse(raw).tools).toEqual(["claude"]);
+      expect(JSON.parse(raw).skills).toEqual([
+        { name: "no-yap", url: "builtin" },
+      ]);
 
-      const existing = await ensureGlobalConfig(["opencode" as const], []);
-      expect(existing.tools).toEqual(["claude"]);
+      const existing = await ensureGlobalConfig([]);
+      expect(existing.skills).toEqual([{ name: "no-yap", url: "builtin" }]);
     } finally {
       process.env.HOME = origHome;
       await fs.rm(tmpDir, { recursive: true, force: true });

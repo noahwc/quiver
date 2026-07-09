@@ -37,7 +37,7 @@ describe("skill-discovery", () => {
       expect(skill.name).toBeTruthy();
       expect(skill.description).toBeTruthy();
       expect(skill.url).toBe("builtin");
-      expect(["instruction", "skill", "agent"]).toContain(skill.type);
+      expect(["instruction", "skill"]).toContain(skill.type);
     }
   });
 
@@ -73,7 +73,6 @@ describe("skill-discovery", () => {
       category: "tokens" as const,
       type: "instruction" as const,
       "auto-trigger": false,
-      targets: ["claude" as const],
       url: "builtin",
     };
     const config = toConfigSkill(skill);
@@ -87,7 +86,6 @@ describe("skill-discovery", () => {
       category: "productivity" as const,
       type: "skill" as const,
       "auto-trigger": false,
-      targets: ["claude" as const],
       url: "github:mattpocock/skills/skills/productivity/grill-me",
     };
     const config = toConfigSkill(skill);
