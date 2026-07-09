@@ -1,11 +1,5 @@
 export type SkillType = "instruction" | "skill";
 
-export type SkillCategory =
-  | "tokens"
-  | "project"
-  | "productivity"
-  | "engineering";
-
 export type SkillSource =
   | { type: "builtin" }
   | { type: "github"; owner: string; repo: string; path: string; ref: string };
@@ -13,7 +7,6 @@ export type SkillSource =
 export interface SkillFrontmatter {
   name: string;
   description: string;
-  category: SkillCategory;
   type: SkillType;
   "auto-trigger": boolean;
 }
@@ -43,6 +36,13 @@ export interface OutputFile {
   content: string;
   mergeStrategy: "section-marker" | "overwrite";
 }
+
+export interface Manifest {
+  files: string[];
+}
+
+/** Name used for the single managed block in CLAUDE.md and AGENTS.md. */
+export const QUIVER_BLOCK_NAME = "quiver";
 
 export const SECTION_MARKER_START = (name: string) =>
   `<!-- quiver:start:${name} -->`;

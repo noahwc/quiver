@@ -1,13 +1,8 @@
 ---
 name: project-conventions
 description: Template for project stack, coding rules, and architecture documentation
-category: project
 type: instruction
 auto-trigger: false
-targets:
-  - claude
-  - opencode
-  - copilot
 ---
 
 ## Stack

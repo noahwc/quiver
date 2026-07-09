@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "description": "A library of AI coding assistant skills, written once and transpiled to Claude Code, OpenCode, and GitHub Copilot",
   "type": "module",
-  "main": "dist/index.js",
   "bin": {
     "quiver": "dist/cli/index.js"
   },
@@ -26,7 +25,6 @@
   "dependencies": {
     "@clack/prompts": "^0.9.1",
     "commander": "^13.1.0",
-    "glob": "^11.0.1",
     "gray-matter": "^4.0.3",
     "picocolors": "^1.1.1"
   },
@@ -38,7 +36,6 @@
   "files": [
     "dist",
     "skills",
-    "third-party-references",
-    "templates"
+    "registry.json"
   ]
 }

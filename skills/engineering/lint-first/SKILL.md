@@ -8,13 +8,8 @@ description: >
   typecheck/lint/format setup; (2) if none exists, propose adding one before
   doing any manual inspection. Manual reading is the LAST resort, reserved for
   what tooling cannot catch or fix.
-category: engineering
 type: skill
 auto-trigger: true
-targets:
-  - claude
-  - opencode
-  - copilot
 ---
 
 # lint-first

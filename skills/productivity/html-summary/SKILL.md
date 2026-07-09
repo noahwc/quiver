@@ -5,13 +5,8 @@ description: >
   comparisons, multi-section reports). Write a standalone HTML summary optimised
   for scannability and open it automatically, instead of printing a wall of text
   in chat/terminal.
-category: productivity
 type: skill
 auto-trigger: true
-targets:
-  - claude
-  - opencode
-  - copilot
 ---
 
 When a findings summary would be large (roughly 3+ sections or ~40+ lines of

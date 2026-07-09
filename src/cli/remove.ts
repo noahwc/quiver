@@ -1,14 +1,12 @@
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import * as os from "node:os";
-import * as path from "node:path";
 import {
   readGlobalConfig,
   writeGlobalConfig,
   removeSkillFromConfig,
 } from "../core/config.js";
 import { selectSkillsToRemove } from "../tui/skill-browser.js";
-import { removeSkillFromMarkdown, removeSkillFiles } from "../transpiler/writers/markdown-writer.js";
+import { sync } from "../core/sync.js";
 
 export async function remove(): Promise<void> {
   p.intro(pc.bgCyan(pc.black(" quiver remove ")));
@@ -28,18 +26,11 @@ export async function remove(): Promise<void> {
   let updated = config;
   for (const name of toRemove) {
     updated = removeSkillFromConfig(updated, name);
-    await removeSkillFromMarkdown(
-      path.join(os.homedir(), ".claude", "CLAUDE.md"),
-      name,
-    );
-    await removeSkillFromMarkdown(
-      path.join(os.homedir(), ".config", "opencode", "AGENTS.md"),
-      name,
-    );
-    await removeSkillFiles(name);
     p.log.step(`Removed ${pc.red(name)}`);
   }
 
   await writeGlobalConfig(updated);
+  await sync();
+
   p.outro(pc.green("Done!"));
 }

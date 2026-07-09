@@ -1,0 +1,30 @@
+[
+  {
+    "name": "grill-me",
+    "description": "Interview the user relentlessly about a plan or design until reaching shared understanding. Walk down every branch of the decision tree, resolving dependencies between decisions one-by-one.",
+    "type": "skill",
+    "auto-trigger": false,
+    "url": "github:mattpocock/skills/skills/productivity/grill-me"
+  },
+  {
+    "name": "grill-with-docs",
+    "description": "Domain-aware grilling that checks existing documentation, enforces terminology, cross-references code, and updates CONTEXT.md and ADRs inline during the interview",
+    "type": "skill",
+    "auto-trigger": false,
+    "url": "github:mattpocock/skills/skills/engineering/grill-with-docs"
+  },
+  {
+    "name": "ponytail",
+    "description": "Forces the laziest solution that actually works. YAGNI, stdlib first, native platform features before dependencies. Active every response — zero over-engineering.",
+    "type": "skill",
+    "auto-trigger": true,
+    "url": "github:DietrichGebert/ponytail/skills/ponytail"
+  },
+  {
+    "name": "ponytail-review",
+    "description": "Review a diff for over-engineering. Finds what to delete: reinvented stdlib, needless deps, speculative abstractions. One line per finding. Invoke manually: /ponytail-review.",
+    "type": "skill",
+    "auto-trigger": false,
+    "url": "github:DietrichGebert/ponytail/skills/ponytail-review"
+  }
+]

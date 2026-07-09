@@ -1,13 +1,8 @@
 ---
 name: no-yap
 description: Eliminate AI verbosity to save output tokens without quality loss
-category: tokens
 type: instruction
 auto-trigger: false
-targets:
-  - claude
-  - opencode
-  - copilot
 ---
 
 - Do not add unnecessary preamble or postamble

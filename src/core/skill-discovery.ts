@@ -2,18 +2,13 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
-import {
-  type QuiverConfigSkill,
-  type SkillCategory,
-  type SkillType,
-} from "./types.js";
+import { type QuiverConfigSkill, type SkillType } from "./types.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export interface DiscoveredSkill {
   name: string;
   description: string;
-  category: SkillCategory;
   type: SkillType;
   "auto-trigger": boolean;
   url: string;
@@ -23,8 +18,8 @@ function skillsDir(): string {
   return path.resolve(__dirname, "../../skills");
 }
 
-function thirdPartyDir(): string {
-  return path.resolve(__dirname, "../../third-party-references");
+function registryPath(): string {
+  return path.resolve(__dirname, "../../registry.json");
 }
 
 export async function discoverAllSkills(): Promise<DiscoveredSkill[]> {
@@ -35,10 +30,9 @@ export async function discoverAllSkills(): Promise<DiscoveredSkill[]> {
   return [...builtin, ...thirdParty];
 }
 
-export async function discoverBuiltinSkills(): Promise<DiscoveredSkill[]> {
+async function discoverBuiltinSkills(): Promise<DiscoveredSkill[]> {
   const dir = skillsDir();
   const skills: DiscoveredSkill[] = [];
-
   try {
     const entries = await scanSkillDirs(dir);
     for (const skillPath of entries) {
@@ -48,58 +42,46 @@ export async function discoverBuiltinSkills(): Promise<DiscoveredSkill[]> {
   } catch {
     // skills dir doesn't exist yet
   }
-
   return skills;
 }
 
-export async function discoverThirdPartySkills(): Promise<DiscoveredSkill[]> {
-  const dir = thirdPartyDir();
-  const skills: DiscoveredSkill[] = [];
-
+async function discoverThirdPartySkills(): Promise<DiscoveredSkill[]> {
   try {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const refPath = path.resolve(dir, entry.name, "reference.json");
-      try {
-        const raw = await fs.readFile(refPath, "utf-8");
-        const data = JSON.parse(raw);
-        skills.push({
-          name: data.name,
-          description: data.description,
-          category: data.category,
-          type: data.type,
-          "auto-trigger": data["auto-trigger"] ?? true,
-          url: data.url,
-        });
-      } catch {
-        // skip invalid references
-      }
-    }
+    const raw = await fs.readFile(registryPath(), "utf-8");
+    const entries = JSON.parse(raw) as Array<{
+      name: string;
+      description: string;
+      type: string;
+      "auto-trigger": boolean;
+      url: string;
+    }>;
+    return entries.map((e) => ({
+      name: e.name,
+      description: e.description,
+      type: (e.type ?? "skill") as SkillType,
+      "auto-trigger": e["auto-trigger"] ?? true,
+      url: e.url,
+    }));
   } catch {
-    // third-party dir doesn't exist yet
+    return [];
   }
-
-  return skills;
 }
 
 async function scanSkillDirs(baseDir: string): Promise<string[]> {
   const results: string[] = [];
   const entries = await fs.readdir(baseDir, { withFileTypes: true });
-
   for (const entry of entries) {
     const full = path.resolve(baseDir, entry.name);
     if (entry.isDirectory()) {
-      const hasSkill = await fileExists(path.resolve(full, "SKILL.md"));
-      if (hasSkill) {
+      try {
+        await fs.access(path.resolve(full, "SKILL.md"));
         results.push(full);
-      } else {
+      } catch {
         const nested = await scanSkillDirs(full);
         results.push(...nested);
       }
     }
   }
-
   return results;
 }
 
@@ -111,8 +93,7 @@ async function readBuiltinSkill(skillDir: string): Promise<DiscoveredSkill | nul
     return {
       name: data.name,
       description: data.description,
-      category: data.category,
-      type: data.type,
+      type: (data.type ?? "skill") as SkillType,
       "auto-trigger": data["auto-trigger"] ?? true,
       url: "builtin",
     };
@@ -127,20 +108,11 @@ export function getInstalledSkillNames(configSkills: QuiverConfigSkill[]): Set<s
 
 export function getUninstalledSkills(
   available: DiscoveredSkill[],
-  installed: Set<string>
+  installed: Set<string>,
 ): DiscoveredSkill[] {
   return available.filter((s) => !installed.has(s.name));
 }
 
 export function toConfigSkill(skill: DiscoveredSkill): QuiverConfigSkill {
   return { name: skill.name, url: skill.url };
-}
-
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
 }

@@ -7,14 +7,8 @@ import {
   addSkillToConfig,
   writeGlobalConfig,
 } from "../core/config.js";
-import { loadAllSkills } from "../core/skill-loader.js";
-import { build } from "../transpiler/index.js";
 import { selectSkills, selectSkillsToAdd } from "../tui/skill-browser.js";
-import {
-  getGlobalCacheDir,
-  ensureCacheDir,
-  fetchThirdPartySkills,
-} from "../third-party/github.js";
+import { sync } from "../core/sync.js";
 
 interface AddOptions {
   dryRun?: boolean;
@@ -49,32 +43,7 @@ export async function add(options: AddOptions = {}): Promise<void> {
     }
   }
 
-  const cacheDir = getGlobalCacheDir();
-  await ensureCacheDir(cacheDir);
-
-  if (!options.dryRun) {
-    const s = p.spinner();
-    s.start("Fetching third-party skills...");
-    const failed = await fetchThirdPartySkills(
-      config.skills,
-      cacheDir,
-      (name) => s.message(`Fetched ${name}`),
-    );
-    s.stop(
-      failed.length
-        ? `Failed: ${failed.join(", ")}`
-        : "Third-party skills ready",
-    );
-  }
-
-  const resolved = await loadAllSkills(config.skills, cacheDir);
-
-  if (!options.dryRun) {
-    await build(resolved);
-    p.log.success("Generated user-level output files");
-  } else {
-    p.log.info("[dry-run] Would generate user-level output files");
-  }
+  await sync({ dryRun: options.dryRun });
 
   p.outro(pc.green("Done!"));
 }

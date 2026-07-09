@@ -60,6 +60,19 @@ export function appendSection(content: string, wrappedSection: string): string {
   return `${trimmed}\n\n${wrappedSection}\n`;
 }
 
+/**
+ * Strips legacy per-skill quiver blocks (any `quiver:start:NAME` where NAME
+ * is not "quiver") to migrate files to the single-block model.
+ */
+export function stripLegacyMarkers(content: string): string {
+  const re =
+    /<!--\s*quiver:start:([a-z0-9][a-z0-9-]*)\s*-->\n[\s\S]*?\n<!--\s*quiver:end:\1\s*-->/g;
+  return content
+    .replace(re, (match, name) => (name === "quiver" ? match : ""))
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

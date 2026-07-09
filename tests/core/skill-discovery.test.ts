@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   discoverAllSkills,
-  discoverBuiltinSkills,
-  discoverThirdPartySkills,
   getInstalledSkillNames,
   getUninstalledSkills,
   toConfigSkill,
@@ -10,18 +8,20 @@ import {
 
 describe("skill-discovery", () => {
   it("discovers builtin skills from filesystem", async () => {
-    const skills = await discoverBuiltinSkills();
-    expect(skills.length).toBeGreaterThanOrEqual(3);
-    const names = skills.map((s) => s.name);
+    const skills = await discoverAllSkills();
+    const builtin = skills.filter((s) => s.url === "builtin");
+    expect(builtin.length).toBeGreaterThanOrEqual(3);
+    const names = builtin.map((s) => s.name);
     expect(names).toContain("no-yap");
     expect(names).toContain("concise-responses");
     expect(names).toContain("project-conventions");
   });
 
-  it("discovers third-party skills from reference.json files", async () => {
-    const skills = await discoverThirdPartySkills();
-    expect(skills.length).toBeGreaterThanOrEqual(2);
-    const names = skills.map((s) => s.name);
+  it("discovers third-party skills from registry.json", async () => {
+    const skills = await discoverAllSkills();
+    const thirdParty = skills.filter((s) => s.url !== "builtin");
+    expect(thirdParty.length).toBeGreaterThanOrEqual(2);
+    const names = thirdParty.map((s) => s.name);
     expect(names).toContain("grill-me");
     expect(names).toContain("grill-with-docs");
   });
@@ -32,8 +32,9 @@ describe("skill-discovery", () => {
   });
 
   it("each builtin skill has correct metadata", async () => {
-    const skills = await discoverBuiltinSkills();
-    for (const skill of skills) {
+    const skills = await discoverAllSkills();
+    const builtin = skills.filter((s) => s.url === "builtin");
+    for (const skill of builtin) {
       expect(skill.name).toBeTruthy();
       expect(skill.description).toBeTruthy();
       expect(skill.url).toBe("builtin");
@@ -42,8 +43,9 @@ describe("skill-discovery", () => {
   });
 
   it("each third-party skill has a github url", async () => {
-    const skills = await discoverThirdPartySkills();
-    for (const skill of skills) {
+    const skills = await discoverAllSkills();
+    const thirdParty = skills.filter((s) => s.url !== "builtin");
+    for (const skill of thirdParty) {
       expect(skill.name).toBeTruthy();
       expect(skill.description).toBeTruthy();
       expect(skill.url).toMatch(/^github:/);
@@ -70,7 +72,6 @@ describe("skill-discovery", () => {
     const skill = {
       name: "no-yap",
       description: "test",
-      category: "tokens" as const,
       type: "instruction" as const,
       "auto-trigger": false,
       url: "builtin",
@@ -83,7 +84,6 @@ describe("skill-discovery", () => {
     const skill = {
       name: "grill-me",
       description: "test",
-      category: "productivity" as const,
       type: "skill" as const,
       "auto-trigger": false,
       url: "github:mattpocock/skills/skills/productivity/grill-me",
@@ -95,3 +95,4 @@ describe("skill-discovery", () => {
     });
   });
 });
+

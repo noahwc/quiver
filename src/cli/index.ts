@@ -4,7 +4,7 @@ import { Command } from "commander";
 import { add } from "./add.js";
 import { remove } from "./remove.js";
 import { list } from "./list.js";
-import { update } from "./update.js";
+import { syncCommand } from "./sync.js";
 
 const program = new Command();
 
@@ -31,11 +31,12 @@ program
   });
 
 program
-  .command("update")
-  .description("Re-fetch third-party skills and rebuild outputs")
+  .command("sync")
+  .description("Sync outputs with current config")
+  .option("--refresh", "Re-fetch all third-party skills from GitHub")
   .option("--dry-run", "Preview changes without writing files")
   .action(async (opts) => {
-    await update({ dryRun: opts.dryRun });
+    await syncCommand({ refresh: opts.refresh, dryRun: opts.dryRun });
   });
 
 program

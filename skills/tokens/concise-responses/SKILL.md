@@ -1,13 +1,8 @@
 ---
 name: concise-responses
 description: Structured output rules that encourage brevity and eliminate conversational padding
-category: tokens
 type: instruction
 auto-trigger: false
-targets:
-  - claude
-  - opencode
-  - copilot
 ---
 
 ## Response format

@@ -1,10 +1,6 @@
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import {
-  type QuiverConfigSkill,
-  type SkillCategory,
-  type SkillType,
-} from "../core/types.js";
+import { type QuiverConfigSkill } from "../core/types.js";
 import {
   discoverAllSkills,
   getInstalledSkillNames,
@@ -13,25 +9,18 @@ import {
   type DiscoveredSkill,
 } from "../core/skill-discovery.js";
 
-const CATEGORY_LABEL: Record<SkillCategory, string> = {
-  tokens: "Token Savings",
-  project: "Project",
-  productivity: "Productivity",
-  engineering: "Engineering",
-};
-
-const TYPE_LABEL: Record<SkillType, string> = {
+const TYPE_LABEL: Record<string, string> = {
   instruction: "always-on",
   skill: "on-demand",
 };
 
 function skillOption(s: DiscoveredSkill) {
   const sourceTag = s.url === "builtin" ? pc.dim("[builtin]") : pc.cyan("[3rd-party]");
-  const tag = pc.dim(`[${CATEGORY_LABEL[s.category]}] [${TYPE_LABEL[s.type]}]`);
+  const typeTag = pc.dim(`[${TYPE_LABEL[s.type] ?? s.type}]`);
   return {
     value: s.name,
     label: s.name,
-    hint: `${s.description} ${tag} ${sourceTag}`,
+    hint: `${s.description} ${typeTag} ${sourceTag}`,
   };
 }
 

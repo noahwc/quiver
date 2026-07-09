@@ -11,7 +11,6 @@ export function parseSkill(markdown: string): ParsedSkill {
   const frontmatter: SkillFrontmatter = {
     name: data.name,
     description: data.description,
-    category: data.category ?? "productivity",
     type: data.type ?? "skill",
     "auto-trigger": data["auto-trigger"] ?? true,
   };

@@ -11,7 +11,6 @@ function makeSkill(
     frontmatter: {
       name: "no-yap",
       description: "Eliminate verbosity",
-      category: "tokens",
       type: "instruction",
       "auto-trigger": false,
       ...overrides,
@@ -46,21 +45,45 @@ describe("generateOutputs — skills", () => {
     const outputs = generateOutputs([
       makeSkill({ type: "skill", name: "grill-me", "auto-trigger": false }),
     ]);
-    expect(outputs[0]!.content).toContain("disable-model-invocation: true");
+    const skillFile = outputs.find((o) => o.path.endsWith("SKILL.md"));
+    expect(skillFile!.content).toContain("disable-model-invocation: true");
   });
 
   it("omits disable-model-invocation when auto-trigger is true", () => {
     const outputs = generateOutputs([
       makeSkill({ type: "skill", name: "grill-me", "auto-trigger": true }),
     ]);
-    expect(outputs[0]!.content).not.toContain("disable-model-invocation");
+    const skillFile = outputs.find((o) => o.path.endsWith("SKILL.md"));
+    expect(skillFile!.content).not.toContain("disable-model-invocation");
   });
 
-  it("does not write per-tool skill copies", () => {
+  it("does not write per-tool skill copies — only the shared claude/skills/ path", () => {
     const outputs = generateOutputs([
       makeSkill({ type: "skill", name: "grill-me" }),
     ]);
-    expect(outputs).toHaveLength(1);
+    const overwriteOutputs = outputs.filter(
+      (o) => o.mergeStrategy === "overwrite",
+    );
+    expect(overwriteOutputs).toHaveLength(1);
+    expect(overwriteOutputs[0]!.path).toContain(
+      path.join(".claude", "skills", "grill-me"),
+    );
+  });
+
+  it("always emits CLAUDE.md and AGENTS.md outputs (empty when no instructions)", () => {
+    const outputs = generateOutputs([
+      makeSkill({ type: "skill", name: "grill-me" }),
+    ]);
+    const claudeMd = outputs.find(
+      (o) => o.path === path.join(home, ".claude", "CLAUDE.md"),
+    );
+    const agentsMd = outputs.find(
+      (o) => o.path === path.join(home, ".config", "opencode", "AGENTS.md"),
+    );
+    expect(claudeMd).toBeDefined();
+    expect(agentsMd).toBeDefined();
+    expect(claudeMd!.content.trim()).toBe("");
+    expect(claudeMd!.mergeStrategy).toBe("section-marker");
   });
 });
 
@@ -81,9 +104,9 @@ describe("generateOutputs — instructions", () => {
 
     expect(claudeMd).toBeDefined();
     expect(claudeMd!.mergeStrategy).toBe("section-marker");
-    expect(claudeMd!.content).toContain("quiver:start:no-yap");
+    expect(claudeMd!.content).toContain("Be concise");
     expect(agentsMd).toBeDefined();
-    expect(agentsMd!.content).toContain("quiver:start:no-yap");
+    expect(agentsMd!.content).toContain("Be concise");
     expect(copilot).toBeDefined();
     expect(copilot!.content).toContain('applyTo: "**"');
     expect(copilot!.content).toContain("Be concise");
@@ -93,6 +116,10 @@ describe("generateOutputs — instructions", () => {
     const outputs = generateOutputs([
       makeSkill({ type: "skill", name: "grill-me" }),
     ]);
-    expect(outputs.some((o) => o.path.endsWith("CLAUDE.md"))).toBe(false);
+    const copilotFiles = outputs.filter(
+      (o) => o.path.includes("instructions") && o.mergeStrategy === "overwrite",
+    );
+    expect(copilotFiles).toHaveLength(0);
   });
 });
+
