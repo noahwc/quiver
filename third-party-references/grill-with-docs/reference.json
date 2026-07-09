@@ -2,7 +2,7 @@
   "name": "grill-with-docs",
   "description": "Domain-aware grilling that checks existing documentation, enforces terminology, cross-references code, and updates CONTEXT.md and ADRs inline during the interview",
   "category": "engineering",
-  "type": "agent",
+  "type": "skill",
   "auto-trigger": false,
   "targets": ["claude", "opencode", "copilot"],
   "url": "github:mattpocock/skills/skills/engineering/grill-with-docs"
