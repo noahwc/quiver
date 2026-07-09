@@ -13,13 +13,14 @@ npm install -g quiver
 ## Usage
 
 ```sh
-quiver add      # pick skills to install globally (~/.quiver/)
-quiver list     # list installed skills
-quiver update   # re-fetch third-party skills and rebuild outputs
-quiver remove   # remove installed skills
+quiver add             # pick skills to install globally (~/.quiver/)
+quiver list            # list installed skills
+quiver sync            # sync outputs with current config
+quiver sync --refresh  # re-fetch all third-party skills then sync
+quiver remove          # remove installed skills
 ```
 
-Add `--dry-run` to `add` or `update` to preview changes without writing files.
+Add `--dry-run` to `add` or `sync` to preview changes without writing files.
 
 ### What it writes
 
