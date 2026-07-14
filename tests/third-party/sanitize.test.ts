@@ -16,7 +16,7 @@ auto-trigger: true
 
     const result = sanitizeFrontmatter(input);
 
-    expect(result).toContain('description: "This is a multi-line folded description.\n"');
+    expect(result).toContain('description: "This is a multi-line folded description."');
     expect(result).not.toContain("description: >");
     expect(result).toContain("# Body content");
   });

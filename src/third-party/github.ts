@@ -98,8 +98,8 @@ export function sanitizeFrontmatter(markdown: string): string {
   const lines = ["---"];
   for (const [key, value] of Object.entries(data)) {
     if (typeof value === "string") {
-      // Escape any double quotes inside the value
-      const escaped = value.replace(/"/g, '\\"');
+      // Trim trailing newlines from folded/literal scalars, then escape quotes
+      const escaped = value.trim().replace(/\n/g, " ").replace(/"/g, '\\"');
       lines.push(`${key}: "${escaped}"`);
     } else if (typeof value === "boolean" || typeof value === "number") {
       lines.push(`${key}: ${String(value)}`);
