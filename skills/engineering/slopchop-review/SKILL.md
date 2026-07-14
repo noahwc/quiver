@@ -1,12 +1,6 @@
 ---
 name: slopchop-review
-description: >
-  Hunk-by-hunk diff triage with three verdicts: FIX (must change, with the
-  concrete fix), DISCUSS (question or tradeoff for the author), OK (silent).
-  Ends with a FIX/DISCUSS summary and offers to apply the FIXes. For reviewing
-  working-tree changes, staged changes, branches, or PRs. Invoke manually:
-  /slopchop-review. Complements ponytail-review (over-engineering only) —
-  this one covers correctness, security, and edge cases.
+description: "Hunk-by-hunk diff triage with three verdicts: FIX (must change, with the concrete fix), DISCUSS (question or tradeoff for the author), OK (silent). Ends with a FIX/DISCUSS summary and offers to apply the FIXes. For reviewing working-tree changes, staged changes, branches, or PRs. Invoke manually: /slopchop-review. Complements ponytail-review (over-engineering only) — this one covers correctness, security, and edge cases."
 type: skill
 auto-trigger: false
 ---

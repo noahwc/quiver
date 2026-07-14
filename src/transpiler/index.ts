@@ -71,7 +71,8 @@ export async function build(
 
 function claudeSkillFile(skill: ResolvedSkill): string {
   const fm = skill.frontmatter;
-  const lines = ["---", `name: ${fm.name}`, `description: ${fm.description}`];
+  const desc = fm.description.replace(/"/g, '\\"');
+  const lines = ["---", `name: ${fm.name}`, `description: "${desc}"`];
   if (!fm["auto-trigger"]) lines.push("disable-model-invocation: true");
   lines.push("---", "", skill.baseContent);
   return lines.join("\n") + "\n";

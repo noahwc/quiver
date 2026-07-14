@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import matter from "gray-matter";
 import {
   type QuiverConfigSkill,
   type SkillSource,
@@ -47,7 +48,8 @@ export async function fetchSkill(
   const destDir = path.resolve(cacheDir, skillName);
   await fs.mkdir(destDir, { recursive: true });
 
-  const skillMd = await fetchRaw(source.owner, source.repo, source.ref, path.join(source.path, "SKILL.md"));
+  const rawSkillMd = await fetchRaw(source.owner, source.repo, source.ref, path.join(source.path, "SKILL.md"));
+  const skillMd = sanitizeFrontmatter(rawSkillMd);
   await fs.writeFile(path.resolve(destDir, "SKILL.md"), skillMd, "utf-8");
 
   const refs = findReferencedFiles(skillMd);
@@ -81,4 +83,32 @@ function findReferencedFiles(skillMd: string): string[] {
     files.push(match[2]);
   }
   return files;
+}
+
+/**
+ * Rewrites YAML frontmatter so every value is a double-quoted string.
+ * This prevents folded (`>`) and literal (`|`) block scalars from causing
+ * "Nested mappings are not allowed in compact mappings" errors in strict
+ * YAML parsers (e.g. pi.dev).
+ */
+export function sanitizeFrontmatter(markdown: string): string {
+  const { data, content } = matter(markdown);
+  if (!data || Object.keys(data).length === 0) return markdown;
+
+  const lines = ["---"];
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value === "string") {
+      // Escape any double quotes inside the value
+      const escaped = value.replace(/"/g, '\\"');
+      lines.push(`${key}: "${escaped}"`);
+    } else if (typeof value === "boolean" || typeof value === "number") {
+      lines.push(`${key}: ${String(value)}`);
+    } else {
+      // Fallback: coerce to string
+      lines.push(`${key}: ${JSON.stringify(value)}`);
+    }
+  }
+  lines.push("---");
+
+  return lines.join("\n") + content;
 }

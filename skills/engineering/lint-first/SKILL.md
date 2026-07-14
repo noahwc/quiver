@@ -1,13 +1,6 @@
 ---
 name: lint-first
-description: >
-  Run deterministic tooling (typecheck, linters, autofixers) FIRST — before any
-  agentic file-by-file inspection — when asked to find or fix syntax errors, type
-  errors, code quality issues, `any` usage, or to "check/clean up/audit the
-  codebase". Two stages: (1) discover and use the repo's existing
-  typecheck/lint/format setup; (2) if none exists, propose adding one before
-  doing any manual inspection. Manual reading is the LAST resort, reserved for
-  what tooling cannot catch or fix.
+description: "Run deterministic tooling (typecheck, linters, autofixers) FIRST — before any agentic file-by-file inspection — when asked to find or fix syntax errors, type errors, code quality issues, any usage, or to check/clean up/audit the codebase. Two stages: (1) discover and use the repo's existing typecheck/lint/format setup; (2) if none exists, propose adding one before doing any manual inspection. Manual reading is the LAST resort, reserved for what tooling cannot catch or fix."
 type: skill
 auto-trigger: true
 ---

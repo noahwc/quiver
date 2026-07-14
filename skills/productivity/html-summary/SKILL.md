@@ -1,10 +1,6 @@
 ---
 name: html-summary
-description: >
-  Use when: presenting large findings (research, investigations, audits,
-  comparisons, multi-section reports). Write a standalone HTML summary optimised
-  for scannability and open it automatically, instead of printing a wall of text
-  in chat/terminal.
+description: "Use when: presenting large findings (research, investigations, audits, comparisons, multi-section reports). Write a standalone HTML summary optimised for scannability and open it automatically, instead of printing a wall of text in chat/terminal."
 type: skill
 auto-trigger: true
 ---

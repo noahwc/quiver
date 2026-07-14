@@ -1,9 +1,6 @@
 ---
 name: habits
-description: >
-  Approved "When → Do" habits mined from session history by habit-miner.
-  Always-on across tools. Managed by the habit-miner skill — habits are only
-  added here after explicit human approval.
+description: "Approved When → Do habits mined from session history by habit-miner. Always-on across tools. Managed by the habit-miner skill — habits are only added here after explicit human approval."
 type: instruction
 auto-trigger: true
 ---

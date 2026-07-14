@@ -1,12 +1,6 @@
 ---
 name: autoresearch
-description: >
-  Metric-driven experiment loops: define a single measurable metric, baseline
-  it, then iterate one change at a time — measure, compare, keep (commit) or
-  discard (revert). State lives in git and a log file, not in context. Use for
-  optimization work: "make X faster", "reduce bundle size", "improve the
-  benchmark", "cut token usage", tuning parameters, or any run-measure-compare
-  loop.
+description: "Metric-driven experiment loops: define a single measurable metric, baseline it, then iterate one change at a time — measure, compare, keep (commit) or discard (revert). State lives in git and a log file, not in context. Use for optimization work: make X faster, reduce bundle size, improve the benchmark, cut token usage, tuning parameters, or any run-measure-compare loop."
 type: skill
 auto-trigger: true
 ---

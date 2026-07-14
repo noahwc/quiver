@@ -1,12 +1,6 @@
 ---
 name: habit-miner
-description: >
-  Mine session history for repeated user corrections and propose "When → Do"
-  habits, each requiring explicit human approval before activation. Use when
-  the user asks to mine sessions, learn from feedback, or review recurring
-  corrections — or when you notice the user correcting the same behavior for
-  the second time or more. Approved habits are written to the always-on
-  `habits` instruction skill. Nothing activates without approval.
+description: "Mine session history for repeated user corrections and propose When → Do habits, each requiring explicit human approval before activation. Use when the user asks to mine sessions, learn from feedback, or review recurring corrections — or when you notice the user correcting the same behavior for the second time or more. Approved habits are written to the always-on habits instruction skill. Nothing activates without approval."
 type: skill
 auto-trigger: true
 ---
