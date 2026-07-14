@@ -42,6 +42,16 @@ github:owner/repo[/path][@ref]
 
 Run `quiver update` to re-fetch them and rebuild the outputs.
 
+## Recommended: RTK
+
+RTK is a CLI proxy that reduces LLM token consumption. It pairs well with quiver's token-saving skills. Install it with:
+
+```sh
+brew install rtk
+```
+
+`quiver add` and `quiver sync` will remind you to install it if it isn't already on your `PATH`.
+
 ## License
 
 MIT
