@@ -8,26 +8,25 @@ auto-trigger: false
 ## Stack
 
 <!-- TODO: Fill in your project's stack. Examples: -->
-- Language: TypeScript 5.x, Node 20
-- Framework: Next.js 14 (App Router)
-- Testing: Vitest, Playwright
-- Styling: Tailwind CSS
+- Language: `<language + version>`
+- Framework: `<framework>`
+- Testing: `<test runner>`
+- Build/tooling: `<bundler, package manager>`
 
 ## Rules
 
 <!-- TODO: Add your project's coding conventions. Examples: -->
-- Use named imports, not default imports
-- Prefer `const` over `let`; avoid `var`
-- Error handling: use Result pattern from `src/lib/result.ts`
-- Never use `any`; use `unknown` + type guards
+- Import style: `<e.g. named vs default imports>`
+- Language idioms to prefer or avoid: `<e.g. immutability, error handling>`
+- Shared patterns and where they live: `<pattern> from <path>`
+- Constraints the AI can't infer: `<e.g. banned APIs, required helpers>`
 
 ## Architecture
 
 <!-- TODO: Describe your project's directory structure. Examples: -->
-- `src/app/` — Next.js routes
-- `src/lib/` — shared utilities
-- `src/components/` — UI components
-- `src/services/` — external API integrations
+- `<dir>/` — `<what lives here>`
+- `<dir>/` — `<what lives here>`
+- `<dir>/` — `<what lives here>`
 
 ## Key principles
 

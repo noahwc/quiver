@@ -23,21 +23,21 @@ auto-trigger: true
 Before running anything, find what the repo already has. Use it as-is — do not
 introduce a different tool alongside an existing one.
 
-1. **Check `package.json` scripts** (or `Makefile`/`justfile`) for `typecheck`,
-   `lint`, `lint:fix`, `format`, `check` targets. Prefer these over raw tool
-   invocations — they encode the repo's flags and file globs.
-2. **Check for tool configs** if scripts are missing or ambiguous:
-   - Typecheck: `tsconfig.json` → `tsc --noEmit -p <tsconfig>`.
-   - Lint: `eslint.config.*` / `.eslintrc*`, `.oxlintrc.json`, `biome.json(c)`.
-   - Format: `.prettierrc*` / `prettier` key in package.json, biome formatter.
-3. **Match the package manager** — lockfile tells you (`pnpm-lock.yaml`,
-   `package-lock.json`, `yarn.lock`, `bun.lockb`). Run scripts with that manager.
+1. **Check the task runner** — `package.json` scripts, `Makefile`, `justfile`,
+   or the ecosystem's equivalent — for `typecheck`, `lint`, `lint:fix`,
+   `format`, `check` targets. Prefer these over raw tool invocations — they
+   encode the repo's flags and file globs.
+2. **Check for tool configs** if scripts are missing or ambiguous. Look for the
+   type checker, linter, and formatter your language ecosystem uses, and their
+   config files, then invoke them directly.
+3. **Match the package/dependency manager** — the lockfile or project manifest
+   tells you which one. Run scripts with that manager.
 4. **Run in this order**: typecheck → linter autofix (`--fix`) → formatter
    (`--write`) → fix remaining diagnostics by hand from the tool's list.
 5. **Re-run after each batch** of manual fixes to confirm the count drops.
 6. **Only then inspect agentically** — targeted greps and file reads for what
-   tooling can't express (design-level typing, e.g. replacing `any`/`z.any()` with
-   real types or schemas, erased generics like `Foo<any>` → `Foo[]`).
+   tooling can't express (design-level typing, e.g. replacing untyped escape
+   hatches with real types or schemas, or narrowing overly broad generics).
 7. **Verify with the same tools** — done means the repo's typecheck AND lint
    scripts exit 0, plus a runtime smoke test where cheap (run the test suite,
    boot the server, or exercise the main entry point).
@@ -47,17 +47,13 @@ introduce a different tool alongside an existing one.
 If Stage 1 finds no typecheck/lint/format setup (no scripts, no configs):
 
 1. **Tell the user what's missing** and propose adding it — don't silently adopt
-   a tool the repo hasn't chosen. Suggested minimal setup for a TS repo:
-   - `typecheck`: `tsc --noEmit` (add a `tsconfig.json` if absent).
-   - `lint` / `lint:fix`: oxlint (fast, zero-config) or eslint if the org
-     standardizes on it.
-   - `format`: prettier or biome.
-2. **Offer a one-off zero-config run as a stopgap** while they decide — e.g.
-   `npx oxlint <dirs>` and `npx prettier --check <dirs>` (or the repo's package
-   manager's `dlx` equivalent) work without config — but flag that results
-   aren't tuned to the repo.
-3. **If the user approves adding the setup**, wire it into `package.json`
-   scripts so future runs hit Stage 1, then proceed with the Stage 1 order of
+   a tool the repo hasn't chosen. Suggest the standard type checker, linter, and
+   formatter for the repo's language, wired into the ecosystem's task runner.
+2. **Offer a one-off zero-config run as a stopgap** while they decide — many
+   linters/formatters have a zero-config or ad-hoc invocation mode that works
+   without config — but flag that results aren't tuned to the repo.
+3. **If the user approves adding the setup**, wire it into the repo's task
+   runner so future runs hit Stage 1, then proceed with the Stage 1 order of
    operations.
 
 ## Triage tool output — not all findings are equal
@@ -71,12 +67,12 @@ If Stage 1 finds no typecheck/lint/format setup (no scripts, no configs):
 
 ## Gotchas
 
-- Some linters (e.g. oxlint) may print nothing in agent terminals even on
-  success — trust the exit code, not the absence of output.
-- Version-manager-provided tools (pnpm/npx via nvm etc.) may be missing from the
-  plain agent PATH — run via a login shell (`/bin/zsh -lc '…'`) if not found.
+- Some linters may print nothing in agent terminals even on success — trust the
+  exit code, not the absence of output.
+- Version-manager-provided tools may be missing from the plain agent PATH — run
+  via a login shell if a tool isn't found.
 - After any bulk edit, re-run the typechecker before moving on — mechanical
-  edits reliably introduce bracket/paren typos the compiler catches instantly.
+  edits reliably introduce syntax typos the compiler catches instantly.
 
 ## Anti-patterns
 
