@@ -9,7 +9,6 @@ import {
 } from "../core/config.js";
 import { selectSkills, selectSkillsToAdd } from "../tui/skill-browser.js";
 import { sync } from "../core/sync.js";
-import { suggestRtk } from "./rtk-hint.js";
 
 interface AddOptions {
   dryRun?: boolean;
@@ -45,8 +44,6 @@ export async function add(options: AddOptions = {}): Promise<void> {
   }
 
   await sync({ dryRun: options.dryRun });
-
-  if (!options.dryRun) await suggestRtk();
 
   p.outro(pc.green("Done!"));
 }
