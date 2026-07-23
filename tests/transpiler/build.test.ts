@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { generateOutputs } from "../../src/transpiler/index.js";
+import { generateOutputs, generateAssetOutputs } from "../../src/transpiler/index.js";
 import { type ResolvedSkill } from "../../src/core/types.js";
 import * as os from "node:os";
 import * as path from "node:path";
+import * as fs from "node:fs/promises";
 
 function makeSkill(
   overrides: Partial<ResolvedSkill["frontmatter"]> = {},
@@ -123,3 +124,60 @@ describe("generateOutputs — instructions", () => {
   });
 });
 
+
+describe("generateAssetOutputs — bundled skill assets", () => {
+  async function tmpSkillDir(files: Record<string, string>): Promise<string> {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "quiver-skill-"));
+    for (const [rel, content] of Object.entries(files)) {
+      const full = path.join(dir, rel);
+      await fs.mkdir(path.dirname(full), { recursive: true });
+      await fs.writeFile(full, content, "utf-8");
+    }
+    return dir;
+  }
+
+  it("copies non-SKILL.md files into the shared skills dir", async () => {
+    const dir = await tmpSkillDir({
+      "SKILL.md": "---\nname: quiz-me\n---\n",
+      "template.html": "<html>tpl</html>",
+    });
+    const outputs = await generateAssetOutputs([
+      makeSkill({ type: "skill", name: "quiz-me" }),
+      // point skillDir at the tmp dir
+    ].map((s) => ({ ...s, skillDir: dir })));
+    const expected = path.join(home, ".claude", "skills", "quiz-me", "template.html");
+    const asset = outputs.find((o) => o.path === expected);
+    expect(asset).toBeDefined();
+    expect(asset!.content).toBe("<html>tpl</html>");
+    expect(asset!.mergeStrategy).toBe("overwrite");
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it("excludes SKILL.md and preserves nested paths", async () => {
+    const dir = await tmpSkillDir({
+      "SKILL.md": "x",
+      "assets/quiz.css": "body{}",
+    });
+    const outputs = await generateAssetOutputs([
+      { ...makeSkill({ type: "skill", name: "quiz-me" }), skillDir: dir },
+    ]);
+    expect(outputs.some((o) => o.path.endsWith("SKILL.md"))).toBe(false);
+    expect(
+      outputs.some(
+        (o) =>
+          o.path ===
+          path.join(home, ".claude", "skills", "quiz-me", "assets", "quiz.css"),
+      ),
+    ).toBe(true);
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it("ignores instruction-type skills", async () => {
+    const dir = await tmpSkillDir({ "SKILL.md": "x", "template.html": "y" });
+    const outputs = await generateAssetOutputs([
+      { ...makeSkill({ type: "instruction", name: "no-yap" }), skillDir: dir },
+    ]);
+    expect(outputs).toHaveLength(0);
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+});

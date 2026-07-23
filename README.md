@@ -40,7 +40,24 @@ Skills can be pulled from GitHub using a URL of the form:
 github:owner/repo[/path][@ref]
 ```
 
-Run `quiver update` to re-fetch them and rebuild the outputs.
+The whole skill directory is fetched — `SKILL.md` plus any bundled scripts,
+reference docs, templates, or additional instruction files — preserving the
+nested structure under `~/.claude/skills/<name>/`.
+
+**Private repositories** you're authenticated to are supported. quiver picks
+the first credential that actually works, in this order:
+
+1. The **GitHub CLI** OAuth token (`gh auth login`) — this is the recommended
+   path and keeps working even when your org disables Personal Access Tokens.
+2. `GITHUB_TOKEN` / `GH_TOKEN` environment variables (e.g. CI's built-in token).
+
+A blocked or expired credential in the environment transparently falls back to
+your GitHub CLI login, so PATs are never required.
+
+Public repos work without a token, subject to GitHub's unauthenticated API
+rate limits.
+
+Run `quiver sync --refresh` to re-fetch them and rebuild the outputs.
 
 ## License
 

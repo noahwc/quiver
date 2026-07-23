@@ -9,7 +9,7 @@ import {
   writeManifest,
 } from "./config.js";
 import { loadAllSkills } from "./skill-loader.js";
-import { generateOutputs } from "../transpiler/index.js";
+import { generateOutputs, generateAssetOutputs } from "../transpiler/index.js";
 import { writeOutputs } from "../transpiler/writers/markdown-writer.js";
 import { fetchThirdPartySkills } from "../third-party/github.js";
 
@@ -46,7 +46,10 @@ export async function sync(options: SyncOptions = {}): Promise<void> {
   }
 
   const skills = await loadAllSkills(config.skills, cacheDir);
-  const outputs = generateOutputs(skills);
+  const outputs = [
+    ...generateOutputs(skills),
+    ...(await generateAssetOutputs(skills)),
+  ];
   const manifest = await readManifest();
 
   if (options.dryRun) {
