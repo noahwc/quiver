@@ -1,9 +1,0 @@
-{
-  "name": "ponytail",
-  "description": "Forces the laziest solution that actually works. YAGNI, stdlib first, native platform features before dependencies. Active every response — zero over-engineering.",
-  "category": "engineering",
-  "type": "skill",
-  "auto-trigger": true,
-  "targets": ["claude", "opencode", "copilot"],
-  "url": "github:DietrichGebert/ponytail/skills/ponytail"
-}

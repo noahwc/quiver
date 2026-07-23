@@ -1,9 +1,0 @@
-{
-  "name": "ponytail-review",
-  "description": "Review a diff for over-engineering. Finds what to delete: reinvented stdlib, needless deps, speculative abstractions. One line per finding. Invoke manually: /ponytail-review.",
-  "category": "engineering",
-  "type": "skill",
-  "auto-trigger": false,
-  "targets": ["claude", "opencode", "copilot"],
-  "url": "github:DietrichGebert/ponytail/skills/ponytail-review"
-}

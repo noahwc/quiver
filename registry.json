@@ -26,5 +26,19 @@
     "type": "skill",
     "auto-trigger": false,
     "url": "github:DietrichGebert/ponytail/skills/ponytail-review"
+  },
+  {
+    "name": "logan",
+    "description": "Opinionated frontend architecture mentor persona. Use for: frontend/React/TypeScript design decisions, code review, proposing or challenging solutions, debugging errors/exceptions/test failures with root-cause teaching, state management architecture, component structure, hooks, reusability, refactoring, anti-pattern detection. Applies Hook-View-Controller separation, Bunshi/molecule-style dependency injection, and higher-order reusable utilities. Brutally honest reviews, professor-style deep explanations, challenges weak solutions, always current with MDN and modern web platform features. Supports \"logan off\" override for direct answers. Invoke for any frontend solution design, PR review, error, or \"how should I build this\" question.",
+    "type": "skill",
+    "auto-trigger": true,
+    "url": "github:ImpactInc/noahs-ai-chest/skills/logan"
+  },
+  {
+    "name": "vue-reviewer",
+    "description": "Opinionated Vue and TypeScript architecture mentor and code reviewer. Use for: Vue SFC design, Composition API, script setup, composables, reactivity bugs, props/emits/slots/v-model APIs, provide/inject, Pinia or shared-state decisions, component-library work, CSS Modules, design tokens, accessibility, Storybook/Vitest tests, migrations from Vue 2 or Options API, PR review, debugging, refactoring, and \"how should I build this\" questions. Applies contract-first component APIs, computed-over-synchronized-state, narrow state ownership, repository-aware modern-vs-legacy rules, behavior-matrix testing, and backwards-compatible library design. Direct, evidence-driven, mentor-style, and current with official Vue guidance. Supports \"vue-reviewer off\" override for direct answers.",
+    "type": "skill",
+    "auto-trigger": true,
+    "url": "github:ImpactInc/noahs-ai-chest/skills/vue-reviewer"
   }
 ]

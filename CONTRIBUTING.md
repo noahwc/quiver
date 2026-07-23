@@ -40,7 +40,7 @@ quiver add
 - `src/third-party/` — fetching skills from GitHub
 - `src/tui/` — interactive skill browser
 - `skills/` — built-in skills (each in its own folder with a `SKILL.md`)
-- `third-party-references/` — pinned references to external skills
+- `registry.json` — catalog of external (third-party) skills available to install
 - `tests/` — vitest tests mirroring the `src/` structure
 
 ## Adding a built-in skill
