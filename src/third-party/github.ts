@@ -163,7 +163,6 @@ export async function fetchSkill(
 
   const skillName = path.basename(source.path) || source.repo;
   const destDir = path.resolve(cacheDir, skillName);
-  await fs.mkdir(destDir, { recursive: true });
 
   const repoPaths = await listSkillFiles(source, authToken);
   const hasSkillMd = repoPaths.some(
@@ -175,18 +174,27 @@ export async function fetchSkill(
     );
   }
 
+  // Download everything first so a mid-fetch failure never leaves a good cache
+  // half-wiped.
+  const downloaded: Array<{ rel: string; content: Buffer | string }> = [];
   for (const repoPath of repoPaths) {
     const rel = path.posix.relative(source.path, repoPath);
     const bytes = await fetchFileBytes(source, repoPath, authToken);
+    downloaded.push({
+      rel,
+      content:
+        rel === "SKILL.md" ? sanitizeFrontmatter(bytes.toString("utf-8")) : bytes,
+    });
+  }
+
+  // Replace the cached copy wholesale so files removed upstream don't linger on
+  // `sync --refresh`; the cache always mirrors the source exactly.
+  await fs.rm(destDir, { recursive: true, force: true });
+  await fs.mkdir(destDir, { recursive: true });
+  for (const { rel, content } of downloaded) {
     const destPath = path.resolve(destDir, rel);
     await fs.mkdir(path.dirname(destPath), { recursive: true });
-
-    if (rel === "SKILL.md") {
-      const skillMd = sanitizeFrontmatter(bytes.toString("utf-8"));
-      await fs.writeFile(destPath, skillMd, "utf-8");
-    } else {
-      await fs.writeFile(destPath, bytes);
-    }
+    await fs.writeFile(destPath, content);
   }
 
   return destDir;

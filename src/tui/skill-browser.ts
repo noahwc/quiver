@@ -14,13 +14,27 @@ const TYPE_LABEL: Record<string, string> = {
   skill: "on-demand",
 };
 
+/** Keeps hints to a single, terminal-friendly line so long descriptions
+ * don't wrap into many rows and corrupt the multiselect's redraw. */
+function truncate(text: string, max = 100): string {
+  const oneLine = text.replace(/\s+/g, " ").trim();
+  return oneLine.length > max ? oneLine.slice(0, max - 1) + "…" : oneLine;
+}
+
+/** Bounds the scrolling viewport to the terminal height so the full option
+ * list never overflows (which garbles @clack's cursor math). */
+function viewportSize(): number {
+  const rows = process.stdout.rows ?? 24;
+  return Math.max(5, Math.min(12, rows - 6));
+}
+
 function skillOption(s: DiscoveredSkill) {
   const sourceTag = s.url === "builtin" ? pc.dim("[builtin]") : pc.cyan("[3rd-party]");
   const typeTag = pc.dim(`[${TYPE_LABEL[s.type] ?? s.type}]`);
   return {
     value: s.name,
     label: s.name,
-    hint: `${s.description} ${typeTag} ${sourceTag}`,
+    hint: `${truncate(s.description)} ${typeTag} ${sourceTag}`,
   };
 }
 
@@ -35,6 +49,7 @@ export async function selectSkills(
     message: "Which skills do you want to install?",
     options: all.map(skillOption),
     initialValues: defaults,
+    maxItems: viewportSize(),
     required: false,
   });
 
@@ -62,6 +77,7 @@ export async function selectSkillsToAdd(
   const selected = await p.multiselect({
     message: "Which skills do you want to add?",
     options: uninstalled.map(skillOption),
+    maxItems: viewportSize(),
     required: false,
   });
 
@@ -88,6 +104,7 @@ export async function selectSkillsToRemove(
       value: s.name,
       label: s.name,
     })),
+    maxItems: viewportSize(),
     required: false,
   });
 

@@ -75,6 +75,42 @@ describe("fetchSkill", () => {
     ).toBe("echo hi");
   });
 
+  it("removes files deleted upstream on a re-fetch (sync --refresh)", async () => {
+    const dir = "skills/my-skill";
+    const listing = (withRef: boolean) => [
+      { type: "file", path: `${dir}/SKILL.md` },
+      ...(withRef ? [{ type: "file", path: `${dir}/reference.md` }] : []),
+    ];
+    let hasRef = true;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string | URL): Promise<Response> => {
+        const u = String(url);
+        if (u.includes(`/contents/${dir}?`)) return jsonResponse(listing(hasRef));
+        if (u.includes("SKILL.md"))
+          return rawResponse("---\nname: my-skill\ndescription: t\n---\nBody");
+        if (u.includes("reference.md")) return rawResponse("# Reference");
+        throw new Error(`unexpected url ${u}`);
+      }),
+    );
+
+    const destDir = await fetchSkill(source, cacheDir, "tok");
+    expect(
+      await fs.readFile(path.join(destDir, "reference.md"), "utf-8"),
+    ).toBe("# Reference");
+
+    // Upstream deletes reference.md, then we re-fetch.
+    hasRef = false;
+    await fetchSkill(source, cacheDir, "tok");
+
+    await expect(
+      fs.readFile(path.join(destDir, "reference.md"), "utf-8"),
+    ).rejects.toThrow();
+    expect(await fs.readFile(path.join(destDir, "SKILL.md"), "utf-8")).toContain(
+      "Body",
+    );
+  });
+
   it("sends an Authorization header when a token is provided", async () => {
     const fetchMock = vi.fn(async (): Promise<Response> =>
       jsonResponse([{ type: "file", path: "skills/my-skill/SKILL.md" }]),
