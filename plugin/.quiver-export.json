@@ -4,6 +4,8 @@
   "files": [
     "plugin.json",
     "skills/autoresearch/SKILL.md",
+    "skills/commit-split/SKILL.md",
+    "skills/commit-split/reference/hunk-staging.md",
     "skills/habit-miner/SKILL.md",
     "skills/html-summary/SKILL.md",
     "skills/lint-first/SKILL.md",
