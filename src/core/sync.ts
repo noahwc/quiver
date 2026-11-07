@@ -9,6 +9,8 @@ import {
   writeManifest,
 } from "./config.js";
 import { loadAllSkills } from "./skill-loader.js";
+import { discoverAllSkills } from "./skill-discovery.js";
+import { withDependencies } from "./dependencies.js";
 import { generateOutputs, generateAssetOutputs } from "../transpiler/index.js";
 import { writeOutputs } from "../transpiler/writers/markdown-writer.js";
 import { fetchThirdPartySkills } from "../third-party/github.js";
@@ -27,7 +29,11 @@ export async function sync(options: SyncOptions = {}): Promise<void> {
   const cacheDir = globalCachePath();
   await fs.mkdir(cacheDir, { recursive: true });
 
-  const thirdParty = config.skills.filter((s) => s.url !== "builtin");
+  const skillsToInstall = withDependencies(
+    config.skills,
+    await discoverAllSkills(),
+  );
+  const thirdParty = skillsToInstall.filter((s) => s.url !== "builtin");
   const toFetch = options.refresh
     ? thirdParty
     : await getMissingFromCache(thirdParty, cacheDir);
@@ -45,7 +51,7 @@ export async function sync(options: SyncOptions = {}): Promise<void> {
     s.stop("Third-party skills ready");
   }
 
-  const skills = await loadAllSkills(config.skills, cacheDir);
+  const skills = await loadAllSkills(skillsToInstall, cacheDir);
   const outputs = [
     ...generateOutputs(skills),
     ...(await generateAssetOutputs(skills)),

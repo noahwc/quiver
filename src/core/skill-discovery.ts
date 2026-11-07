@@ -12,6 +12,8 @@ export interface DiscoveredSkill {
   type: SkillType;
   "auto-trigger": boolean;
   url: string;
+  /** Names of catalog skills this skill delegates to and cannot work without. */
+  requires?: string[];
 }
 
 function skillsDir(): string {
@@ -53,6 +55,7 @@ async function discoverThirdPartySkills(): Promise<DiscoveredSkill[]> {
       description: string;
       type: string;
       "auto-trigger": boolean;
+      requires?: string[];
       url: string;
     }>;
     return entries.map((e) => ({
@@ -61,6 +64,7 @@ async function discoverThirdPartySkills(): Promise<DiscoveredSkill[]> {
       type: (e.type ?? "skill") as SkillType,
       "auto-trigger": e["auto-trigger"] ?? true,
       url: e.url,
+      requires: e.requires,
     }));
   } catch {
     return [];
@@ -96,6 +100,7 @@ async function readBuiltinSkill(skillDir: string): Promise<DiscoveredSkill | nul
       type: (data.type ?? "skill") as SkillType,
       "auto-trigger": data["auto-trigger"] ?? true,
       url: "builtin",
+      requires: Array.isArray(data.requires) ? data.requires : undefined,
     };
   } catch {
     return null;

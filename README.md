@@ -65,6 +65,13 @@ your GitHub CLI login, so PATs are never required.
 Public repos work without a token, subject to GitHub's unauthenticated API
 rate limits.
 
+### Skill dependencies
+
+Some skills are thin entry points into another skill — `grill-me`, for example,
+delegates the actual interview to the `grilling` skill. Those dependencies are
+declared in `registry.json` and installed automatically by `add` and `sync`, so
+you only ever select the skill you want to use.
+
 Run `quiver sync --refresh` to re-fetch them and rebuild the outputs.
 
 ## License

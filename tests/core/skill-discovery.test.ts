@@ -26,6 +26,14 @@ describe("skill-discovery", () => {
     expect(names).toContain("grill-with-docs");
   });
 
+  it("discovers skill dependencies declared in registry.json", async () => {
+    const skills = await discoverAllSkills();
+    expect(skills.find((s) => s.name === "grill-me")?.requires).toContain(
+      "grilling",
+    );
+    expect(skills.find((s) => s.name === "grilling")).toBeDefined();
+  });
+
   it("discovers all skills combined", async () => {
     const skills = await discoverAllSkills();
     expect(skills.length).toBeGreaterThanOrEqual(5);
