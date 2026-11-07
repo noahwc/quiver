@@ -1,8 +1,8 @@
 # quiver
 
-A library of AI coding assistant skills, written once and transpiled to Claude Code, OpenCode, and GitHub Copilot.
+A library of AI coding assistant skills, written once and installed globally for Claude Code, OpenCode, GitHub Copilot, pi, and DeepSeek Harness.
 
-Skills live in one place. `quiver` installs them globally so every project shares the same set of AI instructions and skills across all three tools.
+Skills live in one place. `quiver` installs them globally so every project shares the same set of AI instructions and skills across tools.
 
 ## Install
 
@@ -26,9 +26,17 @@ Add `--dry-run` to `add` or `sync` to preview changes without writing files.
 
 Installing skills generates output files for each tool:
 
-- **Claude Code / OpenCode** — `~/.claude/skills/<name>/SKILL.md`
-- **Always-on instructions** — `~/.claude/CLAUDE.md`, `~/.config/opencode/AGENTS.md`
-- **GitHub Copilot** — `~/.copilot/instructions/<name>.instructions.md`
+- **Skills** — every skill is written to each native global root:
+  - `~/.claude/skills/<name>/SKILL.md` — Claude Code, OpenCode, VS Code (Claude / Local harness)
+  - `~/.copilot/skills/<name>/SKILL.md` — GitHub Copilot CLI and VS Code Copilot
+  - `~/.agents/skills/<name>/SKILL.md` — Codex, pi, DeepSeek Harness, OpenCode, VS Code Local
+
+  Bundled scripts, references, and templates are copied alongside each `SKILL.md`.
+
+- **Always-on instructions** — one managed block in `~/.claude/CLAUDE.md`, `~/.config/opencode/AGENTS.md`, `~/.pi/agent/AGENTS.md`, and `~/.dsh/AGENTS.md`.
+- **GitHub Copilot instructions** — `~/.copilot/instructions/<name>.instructions.md`.
+
+Clients that read more than one skills root (OpenCode and VS Code Local) may list the same skill twice. The files are identical and resolve to the same skill, so this is cosmetic.
 
 Your selection is saved to `~/.quiver/quiver.json`.
 
@@ -42,7 +50,7 @@ github:owner/repo[/path][@ref]
 
 The whole skill directory is fetched — `SKILL.md` plus any bundled scripts,
 reference docs, templates, or additional instruction files — preserving the
-nested structure under `~/.claude/skills/<name>/`.
+nested structure under each skills root.
 
 **Private repositories** you're authenticated to are supported. quiver picks
 the first credential that actually works, in this order:

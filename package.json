@@ -1,7 +1,7 @@
 {
   "name": "quiver",
   "version": "0.1.0",
-  "description": "A library of AI coding assistant skills, written once and transpiled to Claude Code, OpenCode, and GitHub Copilot",
+  "description": "A library of AI coding assistant skills, written once and transpiled to Claude Code, OpenCode, GitHub Copilot, pi, and DeepSeek Harness",
   "type": "module",
   "bin": {
     "quiver": "dist/cli/index.js"
@@ -18,6 +18,8 @@
     "claude-code",
     "opencode",
     "copilot",
+    "pi",
+    "deepseek-harness",
     "skills",
     "prompts",
     "agents"

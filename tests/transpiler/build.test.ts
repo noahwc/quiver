@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { generateOutputs, generateAssetOutputs } from "../../src/transpiler/index.js";
+import {
+  generateOutputs,
+  generateAssetOutputs,
+  INSTRUCTION_FILES,
+  SKILL_ROOTS,
+} from "../../src/transpiler/index.js";
 import { type ResolvedSkill } from "../../src/core/types.js";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -25,89 +30,94 @@ function makeSkill(
 const home = os.homedir();
 
 describe("generateOutputs — skills", () => {
-  it("writes a skill once to ~/.claude/skills/", () => {
+  it("writes a skill to every native skills root", () => {
     const outputs = generateOutputs([
       makeSkill({ type: "skill", name: "grill-me" }),
     ]);
-    const expected = path.join(
-      home,
-      ".claude",
-      "skills",
-      "grill-me",
-      "SKILL.md",
-    );
-    const file = outputs.find((o) => o.path === expected);
-    expect(file).toBeDefined();
-    expect(file!.content).toContain("name: grill-me");
-    expect(file!.mergeStrategy).toBe("overwrite");
+    const expectedRoots = [
+      path.join(home, ".claude", "skills"),
+      path.join(home, ".copilot", "skills"),
+      path.join(home, ".agents", "skills"),
+    ];
+    for (const root of expectedRoots) {
+      const file = outputs.find(
+        (o) => o.path === path.join(root, "grill-me", "SKILL.md"),
+      );
+      expect(file).toBeDefined();
+      expect(file!.content).toContain("name: grill-me");
+      expect(file!.mergeStrategy).toBe("overwrite");
+    }
   });
 
   it("adds disable-model-invocation when auto-trigger is false", () => {
     const outputs = generateOutputs([
       makeSkill({ type: "skill", name: "grill-me", "auto-trigger": false }),
     ]);
-    const skillFile = outputs.find((o) => o.path.endsWith("SKILL.md"));
-    expect(skillFile!.content).toContain("disable-model-invocation: true");
+    const skillFiles = outputs.filter((o) => o.path.endsWith("SKILL.md"));
+    expect(skillFiles).toHaveLength(SKILL_ROOTS.length);
+    for (const file of skillFiles) {
+      expect(file.content).toContain("disable-model-invocation: true");
+    }
   });
 
   it("omits disable-model-invocation when auto-trigger is true", () => {
     const outputs = generateOutputs([
       makeSkill({ type: "skill", name: "grill-me", "auto-trigger": true }),
     ]);
-    const skillFile = outputs.find((o) => o.path.endsWith("SKILL.md"));
-    expect(skillFile!.content).not.toContain("disable-model-invocation");
+    const skillFiles = outputs.filter((o) => o.path.endsWith("SKILL.md"));
+    expect(skillFiles).toHaveLength(SKILL_ROOTS.length);
+    for (const file of skillFiles) {
+      expect(file.content).not.toContain("disable-model-invocation");
+    }
   });
 
-  it("does not write per-tool skill copies — only the shared claude/skills/ path", () => {
+  it("copies each skill to all native roots, not just claude/skills", () => {
     const outputs = generateOutputs([
       makeSkill({ type: "skill", name: "grill-me" }),
     ]);
     const overwriteOutputs = outputs.filter(
       (o) => o.mergeStrategy === "overwrite",
     );
-    expect(overwriteOutputs).toHaveLength(1);
-    expect(overwriteOutputs[0]!.path).toContain(
-      path.join(".claude", "skills", "grill-me"),
+    expect(overwriteOutputs).toHaveLength(SKILL_ROOTS.length);
+    const roots = overwriteOutputs.map((o) =>
+      path.relative(home, o.path).split(path.sep).slice(0, 2).join(path.sep),
     );
+    expect(roots).toEqual([
+      path.join(".claude", "skills"),
+      path.join(".copilot", "skills"),
+      path.join(".agents", "skills"),
+    ]);
   });
 
-  it("always emits CLAUDE.md and AGENTS.md outputs (empty when no instructions)", () => {
+  it("always emits a managed block in every instruction file", () => {
     const outputs = generateOutputs([
       makeSkill({ type: "skill", name: "grill-me" }),
     ]);
-    const claudeMd = outputs.find(
-      (o) => o.path === path.join(home, ".claude", "CLAUDE.md"),
-    );
-    const agentsMd = outputs.find(
-      (o) => o.path === path.join(home, ".config", "opencode", "AGENTS.md"),
-    );
-    expect(claudeMd).toBeDefined();
-    expect(agentsMd).toBeDefined();
-    expect(claudeMd!.content.trim()).toBe("");
-    expect(claudeMd!.mergeStrategy).toBe("section-marker");
+    expect(INSTRUCTION_FILES).toHaveLength(4);
+    for (const filePath of INSTRUCTION_FILES) {
+      const output = outputs.find((o) => o.path === filePath);
+      expect(output).toBeDefined();
+      expect(output!.content.trim()).toBe("");
+      expect(output!.mergeStrategy).toBe("section-marker");
+    }
   });
 });
 
 describe("generateOutputs — instructions", () => {
-  it("merges instructions into CLAUDE.md and AGENTS.md, plus a Copilot file", () => {
+  it("merges instructions into every always-on file, plus a Copilot file", () => {
     const outputs = generateOutputs([makeSkill()]);
-    const claudeMd = outputs.find(
-      (o) => o.path === path.join(home, ".claude", "CLAUDE.md"),
-    );
-    const agentsMd = outputs.find(
-      (o) => o.path === path.join(home, ".config", "opencode", "AGENTS.md"),
-    );
+    for (const filePath of INSTRUCTION_FILES) {
+      const output = outputs.find((o) => o.path === filePath);
+      expect(output).toBeDefined();
+      expect(output!.mergeStrategy).toBe("section-marker");
+      expect(output!.content).toContain("Be concise");
+    }
+
     const copilot = outputs.find(
       (o) =>
         o.path ===
         path.join(home, ".copilot", "instructions", "no-yap.instructions.md"),
     );
-
-    expect(claudeMd).toBeDefined();
-    expect(claudeMd!.mergeStrategy).toBe("section-marker");
-    expect(claudeMd!.content).toContain("Be concise");
-    expect(agentsMd).toBeDefined();
-    expect(agentsMd!.content).toContain("Be concise");
     expect(copilot).toBeDefined();
     expect(copilot!.content).toContain('applyTo: "**"');
     expect(copilot!.content).toContain("Be concise");
@@ -136,20 +146,21 @@ describe("generateAssetOutputs — bundled skill assets", () => {
     return dir;
   }
 
-  it("copies non-SKILL.md files into the shared skills dir", async () => {
+  it("copies non-SKILL.md files into every native skills root", async () => {
     const dir = await tmpSkillDir({
       "SKILL.md": "---\nname: quiz-me\n---\n",
       "template.html": "<html>tpl</html>",
     });
     const outputs = await generateAssetOutputs([
-      makeSkill({ type: "skill", name: "quiz-me" }),
-      // point skillDir at the tmp dir
-    ].map((s) => ({ ...s, skillDir: dir })));
-    const expected = path.join(home, ".claude", "skills", "quiz-me", "template.html");
-    const asset = outputs.find((o) => o.path === expected);
-    expect(asset).toBeDefined();
-    expect(asset!.content).toBe("<html>tpl</html>");
-    expect(asset!.mergeStrategy).toBe("overwrite");
+      { ...makeSkill({ type: "skill", name: "quiz-me" }), skillDir: dir },
+    ]);
+    for (const root of SKILL_ROOTS) {
+      const expected = path.join(root, "quiz-me", "template.html");
+      const asset = outputs.find((o) => o.path === expected);
+      expect(asset).toBeDefined();
+      expect(asset!.content).toBe("<html>tpl</html>");
+      expect(asset!.mergeStrategy).toBe("overwrite");
+    }
     await fs.rm(dir, { recursive: true, force: true });
   });
 
@@ -162,13 +173,15 @@ describe("generateAssetOutputs — bundled skill assets", () => {
       { ...makeSkill({ type: "skill", name: "quiz-me" }), skillDir: dir },
     ]);
     expect(outputs.some((o) => o.path.endsWith("SKILL.md"))).toBe(false);
-    expect(
-      outputs.some(
-        (o) =>
-          o.path ===
-          path.join(home, ".claude", "skills", "quiz-me", "assets", "quiz.css"),
-      ),
-    ).toBe(true);
+    for (const root of SKILL_ROOTS) {
+      expect(
+        outputs.some(
+          (o) =>
+            o.path ===
+            path.join(root, "quiz-me", "assets", "quiz.css"),
+        ),
+      ).toBe(true);
+    }
     await fs.rm(dir, { recursive: true, force: true });
   });
 

@@ -34,7 +34,7 @@ quiver add
 
 ## Project layout
 
-- `src/cli/` — CLI commands (`add`, `remove`, `list`, `update`) and the entrypoint
+- `src/cli/` — CLI commands (`add`, `remove`, `list`, `sync`) and the entrypoint
 - `src/core/` — config, skill discovery, loading, and shared types
 - `src/transpiler/` — turns skills into per-tool output files
 - `src/third-party/` — fetching skills from GitHub
@@ -51,18 +51,14 @@ Create a folder under `skills/<category>/<name>/` with a `SKILL.md`. The frontma
 ---
 name: my-skill
 description: One-line summary of what the skill does
-category: engineering # tokens | project | productivity | engineering
 type: skill # skill | instruction
 auto-trigger: false
-targets:
-  - claude
-  - opencode
-  - copilot
 ---
 ```
 
-- `type: skill` → written to `~/.claude/skills/<name>/SKILL.md`
-- `type: instruction` → merged into the always-on instruction files (`CLAUDE.md`, `AGENTS.md`) and written as a Copilot `.instructions.md`
+- `type: skill` → written to `~/.claude/skills/<name>/SKILL.md`, `~/.copilot/skills/<name>/SKILL.md`, and `~/.agents/skills/<name>/SKILL.md`, plus any bundled assets.
+- `type: instruction` → merged into the always-on instruction files (`CLAUDE.md`, OpenCode `AGENTS.md`, pi `AGENTS.md`, DSH `AGENTS.md`) and written as a Copilot `.instructions.md`.
+- `auto-trigger: false` → the generated skill gets `disable-model-invocation: true`.
 
 ## Before opening a PR
 
