@@ -1,0 +1,19 @@
+{
+  "generator": "quiver",
+  "version": "0.1.0",
+  "files": [
+    "plugin.json",
+    "skills/autoresearch/SKILL.md",
+    "skills/habit-miner/SKILL.md",
+    "skills/html-summary/SKILL.md",
+    "skills/lint-first/SKILL.md",
+    "skills/pr-steward/SKILL.md",
+    "skills/pr-steward/reference/automation.md",
+    "skills/pr-steward/reference/evals.md",
+    "skills/pr-steward/reference/github-api.md",
+    "skills/pr-steward/scripts/threads.sh",
+    "skills/quiz-me/SKILL.md",
+    "skills/quiz-me/template.html",
+    "skills/slopchop-review/SKILL.md"
+  ]
+}

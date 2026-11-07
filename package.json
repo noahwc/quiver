@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "description": "A library of AI coding assistant skills, written once and transpiled to Claude Code, OpenCode, GitHub Copilot, pi, and DeepSeek Harness",
   "type": "module",
+  "author": {
+    "name": "Noah Clarke",
+    "url": "https://github.com/noahwc"
+  },
+  "homepage": "https://github.com/noahwc/quiver",
+  "repository": "https://github.com/noahwc/quiver",
   "bin": {
     "quiver": "dist/cli/index.js"
   },
@@ -10,6 +16,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "quiver": "tsx src/cli/index.ts",
+    "plugin:sync": "tsx src/cli/index.ts export --out plugin --subtree --force",
     "test": "vitest run",
     "lint": "tsc -p tsconfig.test.json"
   },

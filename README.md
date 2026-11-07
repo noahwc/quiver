@@ -18,9 +18,10 @@ quiver list            # list installed skills
 quiver sync            # sync outputs with current config
 quiver sync --refresh  # re-fetch all third-party skills then sync
 quiver remove          # remove installed skills
+quiver export          # generate a publishable Agent Plugin repo
 ```
 
-Add `--dry-run` to `add` or `sync` to preview changes without writing files.
+Add `--dry-run` to `add`, `sync`, or `export` to preview changes without writing files.
 
 ### What it writes
 
@@ -64,6 +65,38 @@ your GitHub CLI login, so PATs are never required.
 
 Public repos work without a token, subject to GitHub's unauthenticated API
 rate limits.
+
+### Agent Plugin distribution
+
+The CLI is the primary installer. Two plugin layouts are supported.
+
+**This repository as the source.** `.claude-plugin/marketplace.json` advertises
+the generated `plugin/` subtree, so `noahwc/quiver` can be added directly as a
+plugin source in VS Code/Copilot:
+
+```text
+vscode://chat-plugin/install?source=noahwc%2Fquiver&plugin=quiver
+```
+
+Claude Code: `/plugin marketplace add noahwc/quiver`, then
+`/plugin install quiver@quiver`.
+
+`plugin/` is generated from `skills/`; after changing skills run
+`npm run plugin:sync`. `npm test` fails if the committed subtree is stale.
+The separately installable pi package is not part of this subtree; pi and DSH
+users should use the CLI (or the separate export below).
+
+**A separate plugin repo.** `quiver export --out dist/quiver-plugin` emits a
+standalone repo (root `plugin.json` + `skills/` + catalog + pi package) for
+`noahwc/quiver-plugin`.
+
+Always-on instructions (`type: instruction`) and third-party skills are
+intentionally excluded from both: Agent Plugins v1 has no instructions
+component, and third-party skills stay owned by their upstream repositories.
+Install those with `quiver add` / `quiver sync --refresh`.
+
+See [docs/agent-plugins.md](docs/agent-plugins.md) for the coverage matrix,
+client limitations, and publish steps.
 
 ### Skill dependencies
 

@@ -1,0 +1,17 @@
+{
+  "name": "quiver",
+  "owner": {
+    "name": "Noah Clarke",
+    "url": "https://github.com/noahwc"
+  },
+  "description": "Curated AI coding skills from quiver",
+  "plugins": [
+    {
+      "name": "quiver",
+      "source": "./plugin",
+      "description": "Curated AI coding skills from quiver",
+      "category": "productivity",
+      "tags": ["skills", "workflow", "agent-skills"]
+    }
+  ]
+}

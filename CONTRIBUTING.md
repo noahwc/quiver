@@ -34,12 +34,15 @@ quiver add
 
 ## Project layout
 
-- `src/cli/` — CLI commands (`add`, `remove`, `list`, `sync`) and the entrypoint
+- `src/cli/` — CLI commands (`add`, `remove`, `list`, `sync`, `export`) and the entrypoint
 - `src/core/` — config, skill discovery, loading, and shared types
+- `src/export/` — normalization and generation for the publishable Agent Plugin repo
 - `src/transpiler/` — turns skills into per-tool output files
 - `src/third-party/` — fetching skills from GitHub
 - `src/tui/` — interactive skill browser
 - `skills/` — built-in skills (each in its own folder with a `SKILL.md`)
+- `plugin/` — generated Agent Plugins subtree; never hand-edit
+- `.claude-plugin/marketplace.json` — repo-root catalog pointing at `plugin/`
 - `registry.json` — catalog of external (third-party) skills available to install
 - `tests/` — vitest tests mirroring the `src/` structure
 
@@ -59,6 +62,16 @@ auto-trigger: false
 - `type: skill` → written to `~/.claude/skills/<name>/SKILL.md`, `~/.copilot/skills/<name>/SKILL.md`, and `~/.agents/skills/<name>/SKILL.md`, plus any bundled assets.
 - `type: instruction` → merged into the always-on instruction files (`CLAUDE.md`, OpenCode `AGENTS.md`, pi `AGENTS.md`, DSH `AGENTS.md`) and written as a Copilot `.instructions.md`.
 - `auto-trigger: false` → the generated skill gets `disable-model-invocation: true`.
+
+The Agent Plugin subtree is generated with `quiver export --subtree`; never
+hand-edit `plugin/`. After changing skills, run:
+
+```sh
+npm run plugin:sync
+```
+
+`npm test` fails if `plugin/` is stale. `skills/` here remains the source of
+truth.
 
 ## Before opening a PR
 
