@@ -2,6 +2,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as p from "@clack/prompts";
 import { type QuiverConfigSkill, parseSkillUrl } from "./types.ts";
+import { safeCacheName } from "./paths.ts";
 import {
   readGlobalConfig,
   globalCachePath,
@@ -93,7 +94,7 @@ async function getMissingFromCache(
   for (const s of skills) {
     const source = parseSkillUrl(s.url);
     if (source.type !== "github") continue;
-    const skillName = path.basename(source.path) || s.name;
+    const skillName = safeCacheName(path.basename(source.path) || s.name);
     const cachedSkillMd = path.join(cacheDir, skillName, "SKILL.md");
     try {
       await fs.access(cachedSkillMd);

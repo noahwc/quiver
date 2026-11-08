@@ -5,8 +5,10 @@ import {
   type QuiverConfigSkill,
   type ResolvedSkill,
   type SkillSource,
+  SKILL_NAME_REGEX,
   parseSkillUrl,
 } from "./types.ts";
+import { safeCacheName } from "./paths.ts";
 import { parseSkill } from "../transpiler/parser.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -19,6 +21,12 @@ export async function loadSkill(
   entry: QuiverConfigSkill,
   cacheDir?: string
 ): Promise<ResolvedSkill> {
+  if (!SKILL_NAME_REGEX.test(entry.name)) {
+    throw new Error(
+      `Invalid skill name: "${entry.name}". Must match ${SKILL_NAME_REGEX.source}`,
+    );
+  }
+
   const source = parseSkillUrl(entry.url);
   const skillDir = await resolveSkillDir(entry, source, cacheDir);
   const skillMdPath = path.resolve(skillDir, "SKILL.md");
@@ -57,7 +65,7 @@ async function resolveSkillDir(
   }
 
   if (cacheDir) {
-    const skillName = path.basename(source.path) || entry.name;
+    const skillName = safeCacheName(path.basename(source.path) || entry.name);
     return path.resolve(cacheDir, skillName);
   }
 

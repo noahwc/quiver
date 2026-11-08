@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { sanitizeFrontmatter } from "../../src/third-party/github.ts";
+import { parseFrontmatter } from "../../src/core/frontmatter.ts";
 
 describe("sanitizeFrontmatter", () => {
   it("flattens a folded scalar description into a quoted string", () => {
@@ -66,6 +67,47 @@ Body`;
 
     const result = sanitizeFrontmatter(input);
     assert.ok(result.includes('description: "Do \\"this\\" and \\"that\\".'));
+  });
+
+  it("escapes backslashes as well as quotes", () => {
+    const input = `---
+name: my-skill
+description: 'Use C:\\temp and say "hi"'
+type: skill
+---
+
+Body`;
+
+    const result = sanitizeFrontmatter(input);
+    const parsed = parseFrontmatter(result);
+    assert.strictEqual(parsed.data.description, 'Use C:\\temp and say "hi"');
+  });
+
+  it("quotes unsafe mapping keys instead of injecting frontmatter lines", () => {
+    const input = `---
+"x\\nname": evil
+type: skill
+---
+
+Body`;
+
+    const result = sanitizeFrontmatter(input);
+    const parsed = parseFrontmatter(result);
+    assert.deepStrictEqual(parsed.data, {
+      "x\nname": "evil",
+      type: "skill",
+    });
+  });
+
+  it("rejects YAML aliases in third-party frontmatter", () => {
+    const input = `---
+name: &name evil
+description: *name
+---
+
+Body`;
+
+    assert.throws(() => sanitizeFrontmatter(input), /maxAliases/);
   });
 
   it("returns the original markdown when there is no frontmatter", () => {

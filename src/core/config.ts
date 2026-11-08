@@ -46,7 +46,12 @@ export async function readManifest(): Promise<Manifest> {
       path.resolve(globalConfigDir(), MANIFEST_FILENAME),
       "utf-8",
     );
-    return JSON.parse(raw) as Manifest;
+    const parsed = JSON.parse(raw) as { files?: unknown };
+    return {
+      files: Array.isArray(parsed.files)
+        ? parsed.files.filter((file): file is string => typeof file === "string")
+        : [],
+    };
   } catch {
     return { files: [] };
   }

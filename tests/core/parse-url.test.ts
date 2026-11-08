@@ -60,4 +60,32 @@ describe("parseSkillUrl", () => {
     assert.throws(() => parseSkillUrl("npm:some-package"), /Invalid skill URL/);
     assert.throws(() => parseSkillUrl(""), /Invalid skill URL/);
   });
+
+  it("rejects owner, repo, and path traversal", () => {
+    for (const url of [
+      "github:../repo",
+      "github:owner/..",
+      "github:owner/repo/..",
+      "github:owner/repo/a/../b",
+      "github:owner/repo/foo\\..\\bar",
+    ]) {
+      assert.throws(() => parseSkillUrl(url), /Invalid skill URL/, url);
+    }
+  });
+
+  it("rejects refs containing whitespace or control characters", () => {
+    assert.throws(() => parseSkillUrl("github:owner/repo@bad ref"), /Invalid skill URL/);
+    assert.throws(() => parseSkillUrl("github:owner/repo@bad\nref"), /Invalid skill URL/);
+  });
+
+  it("normalizes leading and trailing slashes in the path", () => {
+    const source = parseSkillUrl("github:owner/repo//skills/my-skill/");
+    assert.deepStrictEqual(source, {
+      type: "github",
+      owner: "owner",
+      repo: "repo",
+      path: "skills/my-skill",
+      ref: "main",
+    });
+  });
 });

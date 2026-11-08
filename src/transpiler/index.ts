@@ -175,7 +175,7 @@ function copilotFile(skill: ResolvedSkill): string {
     [
       "---",
       `name: "${fm.name}"`,
-      `description: "${fm.description}"`,
+      `description: ${JSON.stringify(fm.description)}`,
       'applyTo: "**"',
       "---",
       "",

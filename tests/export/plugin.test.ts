@@ -169,6 +169,32 @@ describe("buildPluginRepo", () => {
     await fs.rm(out, { recursive: true, force: true });
   });
 
+  it("percent-encodes every slash in README install links", async () => {
+    const out = await tempDir("quiver-encoding-");
+    const selection = await builtinSelection();
+    await writePluginRepo(
+      buildPluginRepo(selection, {
+        meta,
+        repo: "acme/team/quiver-plugin",
+      }),
+      out,
+    );
+
+    const readme = await fs.readFile(path.join(out, "README.md"), "utf-8");
+    assert.ok(
+      readme.includes(
+        "source=acme%2Fteam%2Fquiver-plugin&plugin=quiver",
+      ),
+    );
+    assert.ok(readme.includes("ref=acme%2Fteam%2Fquiver-plugin"));
+    assert.strictEqual(
+      readme.includes("source=acme/team%2Fquiver-plugin"),
+      false,
+    );
+
+    await fs.rm(out, { recursive: true, force: true });
+  });
+
   it("is byte-for-byte idempotent when rebuilt with --force", async () => {
     const out = await tempDir("quiver-idempotent-");
     const selection = await builtinSelection();
@@ -229,6 +255,23 @@ describe("buildPluginRepo", () => {
       await fs.readFile(path.join(out, "keep.txt"), "utf-8"),
       "keep",
     );
+
+    await fs.rm(out, { recursive: true, force: true });
+  });
+
+  it("refuses to write outside the output directory", async () => {
+    const out = await tempDir("quiver-escape-");
+    const escapeName = `${path.basename(out)}-escape.txt`;
+    const escapePath = path.join(path.dirname(out), escapeName);
+
+    await assert.rejects(
+      writePluginRepo(
+        [{ path: path.join("..", escapeName), content: "escaped" }],
+        out,
+      ),
+      /Refusing to write outside/,
+    );
+    await assert.rejects(fs.access(escapePath));
 
     await fs.rm(out, { recursive: true, force: true });
   });

@@ -3,6 +3,7 @@ import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { parseFrontmatter } from "../core/frontmatter.ts";
+import { isWithin, safeCacheName, safeJoin } from "../core/paths.ts";
 import {
   type QuiverConfigSkill,
   type SkillSource,
@@ -100,6 +101,23 @@ function apiHeaders(
   return headers;
 }
 
+/** Rejects repository paths that are not contained by the skill directory. */
+function assertRepoPathWithin(base: string, candidate: string): void {
+  if (candidate.includes("\\")) {
+    throw new Error(`Refusing to fetch a path with a backslash: ${candidate}`);
+  }
+  const rel = path.posix.relative(base, candidate);
+  if (
+    path.posix.isAbsolute(rel) ||
+    rel === ".." ||
+    rel.startsWith("../")
+  ) {
+    throw new Error(
+      `Refusing to fetch a file outside the skill directory: ${candidate}`,
+    );
+  }
+}
+
 /** Joins repo-relative path segments with forward slashes, ignoring empties. */
 function repoJoin(...segments: string[]): string {
   return segments
@@ -161,8 +179,11 @@ export async function fetchSkill(
   const authToken =
     token === undefined ? await resolveWorkingToken(source) : token || undefined;
 
-  const skillName = path.basename(source.path) || source.repo;
+  const skillName = safeCacheName(path.basename(source.path) || source.repo);
   const destDir = path.resolve(cacheDir, skillName);
+  if (!isWithin(cacheDir, destDir)) {
+    throw new Error(`Invalid skill cache directory: ${destDir}`);
+  }
 
   const repoPaths = await listSkillFiles(source, authToken);
   const hasSkillMd = repoPaths.some(
@@ -179,6 +200,15 @@ export async function fetchSkill(
   const downloaded: Array<{ rel: string; content: Buffer | string }> = [];
   for (const repoPath of repoPaths) {
     const rel = path.posix.relative(source.path, repoPath);
+    if (
+      path.posix.isAbsolute(rel) ||
+      rel === ".." ||
+      rel.startsWith("../")
+    ) {
+      throw new Error(
+        `Refusing to fetch a file outside the skill directory: ${repoPath}`,
+      );
+    }
     const bytes = await fetchFileBytes(source, repoPath, authToken);
     downloaded.push({
       rel,
@@ -192,7 +222,7 @@ export async function fetchSkill(
   await fs.rm(destDir, { recursive: true, force: true });
   await fs.mkdir(destDir, { recursive: true });
   for (const { rel, content } of downloaded) {
-    const destPath = path.resolve(destDir, rel);
+    const destPath = safeJoin(destDir, rel);
     await fs.mkdir(path.dirname(destPath), { recursive: true });
     await fs.writeFile(destPath, content);
   }
@@ -206,8 +236,14 @@ async function listSkillFiles(
   token: string | undefined,
 ): Promise<string[]> {
   const files: string[] = [];
+  const visited = new Set<string>();
 
   async function walk(dir: string): Promise<void> {
+    if (visited.has(dir)) {
+      throw new Error(`Refusing to recurse into ${dir} twice`);
+    }
+    visited.add(dir);
+
     const url =
       `${GITHUB_API_BASE}/repos/${source.owner}/${source.repo}/contents/` +
       `${encodeRepoPath(dir)}?ref=${encodeURIComponent(source.ref)}`;
@@ -219,10 +255,12 @@ async function listSkillFiles(
       path: string;
     }>;
     for (const entry of entries) {
+      const entryPath = path.posix.normalize(entry.path);
+      assertRepoPathWithin(dir, entryPath);
       if (entry.type === "dir") {
-        await walk(entry.path);
+        await walk(entryPath);
       } else if (entry.type === "file") {
-        files.push(entry.path);
+        files.push(entryPath);
       }
     }
   }
@@ -271,6 +309,16 @@ function describeError(
   return new Error(`Failed to fetch ${target}: ${res.status} ${res.statusText}`);
 }
 
+function yamlKey(key: string): string {
+  return /^[A-Za-z0-9_-]+$/.test(key) ? key : JSON.stringify(key);
+}
+
+function yamlString(value: string): string {
+  // JSON's double-quoted strings are valid YAML and escape backslashes,
+  // quotes, and control characters correctly.
+  return JSON.stringify(value.replace(/[\r\n]+/g, " ").trim());
+}
+
 /**
  * Rewrites YAML frontmatter so every value is a double-quoted string.
  * This prevents folded (`>`) and literal (`|`) block scalars from causing
@@ -284,14 +332,12 @@ export function sanitizeFrontmatter(markdown: string): string {
   const lines = ["---"];
   for (const [key, value] of Object.entries(data)) {
     if (typeof value === "string") {
-      // Trim trailing newlines from folded/literal scalars, then escape quotes
-      const escaped = value.trim().replace(/\n/g, " ").replace(/"/g, '\\"');
-      lines.push(`${key}: "${escaped}"`);
+      lines.push(`${yamlKey(key)}: ${yamlString(value)}`);
     } else if (typeof value === "boolean" || typeof value === "number") {
-      lines.push(`${key}: ${String(value)}`);
+      lines.push(`${yamlKey(key)}: ${String(value)}`);
     } else {
       // Fallback: coerce to string
-      lines.push(`${key}: ${JSON.stringify(value)}`);
+      lines.push(`${yamlKey(key)}: ${JSON.stringify(value) ?? "null"}`);
     }
   }
   lines.push("---");

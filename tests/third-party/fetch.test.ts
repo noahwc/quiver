@@ -115,6 +115,43 @@ describe("fetchSkill", () => {
     );
   });
 
+  it("rejects a source path that resolves to a traversing cache name", async () => {
+    const evilSource = {
+      type: "github" as const,
+      owner: "acme",
+      repo: "private-skills",
+      path: "a/..",
+      ref: "main",
+    };
+
+    await assert.rejects(
+      fetchSkill(evilSource, cacheDir, "tok"),
+      /Invalid skill cache name/,
+    );
+  });
+
+  it("rejects repository paths that escape the skill directory", async () => {
+    mock.method(globalThis, "fetch", async (): Promise<Response> =>
+      jsonResponse([{ type: "file", path: "../outside.txt" }]),
+    );
+
+    await assert.rejects(
+      fetchSkill(source, cacheDir, "tok"),
+      /outside the skill directory/,
+    );
+  });
+
+  it("rejects repository paths containing backslashes", async () => {
+    mock.method(globalThis, "fetch", async (): Promise<Response> =>
+      jsonResponse([{ type: "file", path: "skills/my-skill\\..\\outside.txt" }]),
+    );
+
+    await assert.rejects(
+      fetchSkill(source, cacheDir, "tok"),
+      /backslash/,
+    );
+  });
+
   it("sends an Authorization header when a token is provided", async () => {
     mock.method(globalThis, "fetch", async (
       url: string | URL,

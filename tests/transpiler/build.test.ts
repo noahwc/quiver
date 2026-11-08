@@ -10,6 +10,7 @@ import { type ResolvedSkill } from "../../src/core/types.ts";
 import * as os from "node:os";
 import * as path from "node:path";
 import * as fs from "node:fs/promises";
+import { parseFrontmatter } from "../../src/core/frontmatter.ts";
 
 function makeSkill(
   overrides: Partial<ResolvedSkill["frontmatter"]> = {},
@@ -122,6 +123,20 @@ describe("generateOutputs — instructions", () => {
     assert.ok(copilot);
     assert.ok(copilot.content.includes('applyTo: "**"'));
     assert.ok(copilot.content.includes("Be concise"));
+  });
+
+  it("escapes quotes and backslashes in Copilot frontmatter", () => {
+    const description = 'Use C:\\temp and say "hi"';
+    const outputs = generateOutputs([makeSkill({ description })]);
+    const copilot = outputs.find(
+      (o) =>
+        o.path ===
+        path.join(home, ".copilot", "instructions", "no-yap.instructions.md"),
+    );
+    assert.ok(copilot);
+
+    const parsed = parseFrontmatter(copilot.content);
+    assert.strictEqual(parsed.data.description, description);
   });
 
   it("produces no instruction files when there are no instructions", () => {

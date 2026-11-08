@@ -51,6 +51,23 @@ export const SECTION_MARKER_END = (name: string) =>
 
 export const SKILL_NAME_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
+const GITHUB_COMPONENT_REGEX = /^[A-Za-z0-9._-]+$/;
+
+function isValidGithubComponent(value: string): boolean {
+  return (
+    GITHUB_COMPONENT_REGEX.test(value) &&
+    value !== "." &&
+    value !== ".."
+  );
+}
+
+function isSafeRepoPath(repoPath: string): boolean {
+  if (repoPath.includes("\\")) return false;
+  return repoPath
+    .split("/")
+    .every((segment) => segment !== "." && segment !== "..");
+}
+
 export function parseSkillUrl(url: string): SkillSource {
   if (url === "builtin") return { type: "builtin" };
   const match = url.match(/^github:([^/]+)\/([^/]+?)(?:\/(.+?))?(?:@(.+))?$/);
@@ -58,11 +75,23 @@ export function parseSkillUrl(url: string): SkillSource {
     throw new Error(
       `Invalid skill URL: "${url}". Expected "builtin" or "github:owner/repo[/path][@ref]"`,
     );
-  return {
-    type: "github",
-    owner: match[1],
-    repo: match[2],
-    path: match[3] ?? "",
-    ref: match[4] ?? "main",
-  };
+
+  const owner = match[1];
+  const repo = match[2];
+  const repoPath = (match[3] ?? "").replace(/^\/+|\/+$/g, "");
+  const ref = match[4] ?? "main";
+
+  if (
+    !isValidGithubComponent(owner) ||
+    !isValidGithubComponent(repo) ||
+    !isSafeRepoPath(repoPath) ||
+    !ref ||
+    /[\s\u0000-\u001f\u007f]/.test(ref)
+  ) {
+    throw new Error(
+      `Invalid skill URL: "${url}". Expected "builtin" or "github:owner/repo[/path][@ref]"`,
+    );
+  }
+
+  return { type: "github", owner, repo, path: repoPath, ref };
 }

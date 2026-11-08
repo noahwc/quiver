@@ -34,7 +34,10 @@ export function parseFrontmatter(markdown: string): ParsedFrontmatter {
 
 function loadFrontmatterYaml(body: string): Record<string, unknown> {
   if (!body.trim()) return {};
-  const parsed = load(body);
+  // Frontmatter is untrusted (it can come from a third-party repository).
+  // Reject aliases so a small document cannot expand into an expensive graph
+  // when values are serialized back out.
+  const parsed = load(body, { maxAliases: 0, maxDepth: 20 });
   return parsed && typeof parsed === "object" && !Array.isArray(parsed)
     ? (parsed as Record<string, unknown>)
     : {};
