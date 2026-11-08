@@ -1,19 +1,19 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as p from "@clack/prompts";
-import { type QuiverConfigSkill, parseSkillUrl } from "./types.js";
+import { type QuiverConfigSkill, parseSkillUrl } from "./types.ts";
 import {
   readGlobalConfig,
   globalCachePath,
   readManifest,
   writeManifest,
-} from "./config.js";
-import { loadAllSkills } from "./skill-loader.js";
-import { discoverAllSkills } from "./skill-discovery.js";
-import { withDependencies } from "./dependencies.js";
-import { generateOutputs, generateAssetOutputs } from "../transpiler/index.js";
-import { writeOutputs } from "../transpiler/writers/markdown-writer.js";
-import { fetchThirdPartySkills } from "../third-party/github.js";
+} from "./config.ts";
+import { loadAllSkills } from "./skill-loader.ts";
+import { discoverAllSkills } from "./skill-discovery.ts";
+import { withDependencies } from "./dependencies.ts";
+import { generateOutputs, generateAssetOutputs } from "../transpiler/index.ts";
+import { writeOutputs } from "../transpiler/writers/markdown-writer.ts";
+import { fetchThirdPartySkills } from "../third-party/github.ts";
 
 export interface SyncOptions {
   refresh?: boolean;

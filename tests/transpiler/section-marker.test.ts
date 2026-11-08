@@ -1,18 +1,19 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   wrapInSectionMarker,
   findMarkedSections,
   removeMarkedSection,
   replaceMarkedSection,
   appendSection,
-} from "../../src/transpiler/section-marker.js";
+} from "../../src/transpiler/section-marker.ts";
 
 describe("wrapInSectionMarker", () => {
   it("wraps content in markers", () => {
     const result = wrapInSectionMarker("no-yap", "- Be concise");
-    expect(result).toContain("<!-- quiver:start:no-yap -->");
-    expect(result).toContain("<!-- quiver:end:no-yap -->");
-    expect(result).toContain("- Be concise");
+    assert.ok(result.includes("<!-- quiver:start:no-yap -->"));
+    assert.ok(result.includes("<!-- quiver:end:no-yap -->"));
+    assert.ok(result.includes("- Be concise"));
   });
 });
 
@@ -27,8 +28,8 @@ describe("findMarkedSections", () => {
 Some other content`;
 
     const sections = findMarkedSections(content);
-    expect(sections.size).toBe(1);
-    expect(sections.get("no-yap")).toContain("Be concise");
+    assert.strictEqual(sections.size, 1);
+    assert.ok(sections.get("no-yap")!.includes("Be concise"));
   });
 
   it("finds multiple sections", () => {
@@ -41,14 +42,14 @@ Some other content`;
 <!-- quiver:end:conventions -->`;
 
     const sections = findMarkedSections(content);
-    expect(sections.size).toBe(2);
-    expect(sections.has("no-yap")).toBe(true);
-    expect(sections.has("conventions")).toBe(true);
+    assert.strictEqual(sections.size, 2);
+    assert.strictEqual(sections.has("no-yap"), true);
+    assert.strictEqual(sections.has("conventions"), true);
   });
 
   it("returns empty map when no sections found", () => {
     const sections = findMarkedSections("No markers here");
-    expect(sections.size).toBe(0);
+    assert.strictEqual(sections.size, 0);
   });
 });
 
@@ -63,16 +64,16 @@ describe("removeMarkedSection", () => {
 Other content`;
 
     const result = removeMarkedSection(content, "no-yap");
-    expect(result).not.toContain("quiver:start:no-yap");
-    expect(result).not.toContain("Be concise");
-    expect(result).toContain("Other content");
-    expect(result).toContain("# Title");
+    assert.ok(!result.includes("quiver:start:no-yap"));
+    assert.ok(!result.includes("Be concise"));
+    assert.ok(result.includes("Other content"));
+    assert.ok(result.includes("# Title"));
   });
 
   it("returns unchanged content when section not found", () => {
     const content = "# Title\n\nSome content";
     const result = removeMarkedSection(content, "no-yap");
-    expect(result).toBe(content);
+    assert.strictEqual(result, content);
   });
 });
 
@@ -85,28 +86,34 @@ describe("replaceMarkedSection", () => {
 <!-- quiver:end:no-yap -->`;
 
     const result = replaceMarkedSection(content, "no-yap", "- New content");
-    expect(result).not.toContain("Old content");
-    expect(result).toContain("New content");
+    assert.ok(!result.includes("Old content"));
+    assert.ok(result.includes("New content"));
   });
 
   it("appends when section does not exist", () => {
     const content = "# Title\n\nExisting";
     const result = replaceMarkedSection(content, "no-yap", "- Be concise");
-    expect(result).toContain("Existing");
-    expect(result).toContain("Be concise");
+    assert.ok(result.includes("Existing"));
+    assert.ok(result.includes("Be concise"));
   });
 });
 
 describe("appendSection", () => {
   it("appends to non-empty content", () => {
-    const result = appendSection("# Title", "<!-- quiver:start:x -->\nY\n<!-- quiver:end:x -->");
-    expect(result).toContain("# Title");
-    expect(result).toContain("Y");
+    const result = appendSection(
+      "# Title",
+      "<!-- quiver:start:x -->\nY\n<!-- quiver:end:x -->",
+    );
+    assert.ok(result.includes("# Title"));
+    assert.ok(result.includes("Y"));
   });
 
   it("returns just the section for empty content", () => {
-    const result = appendSection("", "<!-- quiver:start:x -->\nY\n<!-- quiver:end:x -->");
-    expect(result).toContain("Y");
-    expect(result).not.toContain("#");
+    const result = appendSection(
+      "",
+      "<!-- quiver:start:x -->\nY\n<!-- quiver:end:x -->",
+    );
+    assert.ok(result.includes("Y"));
+    assert.ok(!result.includes("#"));
   });
 });

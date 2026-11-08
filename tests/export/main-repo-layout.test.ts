@@ -1,13 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { discoverAllSkills } from "../../src/core/skill-discovery.js";
-import { loadAllSkills } from "../../src/core/skill-loader.js";
-import { collectPortableSkills } from "../../src/export/portable.js";
-import { buildPluginRepo, writePluginRepo } from "../../src/export/plugin.js";
-import { readPluginMeta } from "../../src/export/meta.js";
+import { discoverAllSkills } from "../../src/core/skill-discovery.ts";
+import { loadAllSkills } from "../../src/core/skill-loader.ts";
+import { collectPortableSkills } from "../../src/export/portable.ts";
+import { buildPluginRepo, writePluginRepo } from "../../src/export/plugin.ts";
+import { readPluginMeta } from "../../src/export/meta.ts";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -53,16 +54,17 @@ describe("main-repo plugin layout", () => {
     const generated = await generateSubtree();
     const committed = await readTree(path.join(repoRoot, "plugin"));
 
-    expect(
+    assert.deepStrictEqual(
       [...committed.keys()].sort(),
+      [...generated.keys()].sort(),
       "plugin/ is stale; run `npm run plugin:sync`",
-    ).toEqual([...generated.keys()].sort());
+    );
 
     for (const [file, content] of generated) {
-      expect(
+      assert.ok(
         committed.get(file)?.equals(content),
         `plugin/${file} is stale; run \`npm run plugin:sync\``,
-      ).toBe(true);
+      );
     }
   });
 
@@ -73,10 +75,10 @@ describe("main-repo plugin layout", () => {
         "utf-8",
       ),
     );
-    expect(catalog.name).toBe("quiver");
-    expect(catalog.owner.name).toBeTruthy();
-    expect(catalog.plugins).toHaveLength(1);
-    expect(catalog.plugins[0]).toMatchObject({
+    assert.strictEqual(catalog.name, "quiver");
+    assert.ok(catalog.owner.name);
+    assert.strictEqual(catalog.plugins.length, 1);
+    assert.partialDeepStrictEqual(catalog.plugins[0], {
       name: "quiver",
       source: "./plugin",
     });
@@ -84,10 +86,11 @@ describe("main-repo plugin layout", () => {
     const manifest = JSON.parse(
       await fs.readFile(path.join(repoRoot, "plugin", "plugin.json"), "utf-8"),
     );
-    expect(manifest.$schema).toBe(
+    assert.strictEqual(
+      manifest.$schema,
       "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
     );
-    expect(manifest.name).toBe("quiver");
+    assert.strictEqual(manifest.name, "quiver");
 
     const skillDirs = (
       await fs.readdir(path.join(repoRoot, "plugin", "skills"), {
@@ -97,16 +100,16 @@ describe("main-repo plugin layout", () => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
-    expect(skillDirs).toContain("autoresearch");
-    expect(skillDirs).not.toContain("no-yap");
+    assert.ok(skillDirs.includes("autoresearch"));
+    assert.ok(!skillDirs.includes("no-yap"));
   });
 
   it("does not emit full-repo packaging files in subtree mode", async () => {
     const generated = await generateSubtree();
-    expect(generated.has(".claude-plugin/marketplace.json")).toBe(false);
-    expect(generated.has("package.json")).toBe(false);
-    expect(generated.has("README.md")).toBe(false);
-    expect(generated.has("plugin.json")).toBe(true);
-    expect(generated.has("skills/autoresearch/SKILL.md")).toBe(true);
+    assert.strictEqual(generated.has(".claude-plugin/marketplace.json"), false);
+    assert.strictEqual(generated.has("package.json"), false);
+    assert.strictEqual(generated.has("README.md"), false);
+    assert.strictEqual(generated.has("plugin.json"), true);
+    assert.strictEqual(generated.has("skills/autoresearch/SKILL.md"), true);
   });
 });

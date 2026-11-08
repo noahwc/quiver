@@ -1,15 +1,16 @@
-import { describe, it, expect } from "vitest";
-import { parseSkillUrl } from "../../src/core/types.js";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { parseSkillUrl } from "../../src/core/types.ts";
 
 describe("parseSkillUrl", () => {
   it("parses builtin", () => {
     const source = parseSkillUrl("builtin");
-    expect(source).toEqual({ type: "builtin" });
+    assert.deepStrictEqual(source, { type: "builtin" });
   });
 
   it("parses github with just owner/repo", () => {
     const source = parseSkillUrl("github:mattpocock/skills");
-    expect(source).toEqual({
+    assert.deepStrictEqual(source, {
       type: "github",
       owner: "mattpocock",
       repo: "skills",
@@ -19,8 +20,10 @@ describe("parseSkillUrl", () => {
   });
 
   it("parses github with path", () => {
-    const source = parseSkillUrl("github:mattpocock/skills/skills/productivity/grill-me");
-    expect(source).toEqual({
+    const source = parseSkillUrl(
+      "github:mattpocock/skills/skills/productivity/grill-me",
+    );
+    assert.deepStrictEqual(source, {
       type: "github",
       owner: "mattpocock",
       repo: "skills",
@@ -30,8 +33,10 @@ describe("parseSkillUrl", () => {
   });
 
   it("parses github with path and ref", () => {
-    const source = parseSkillUrl("github:mattpocock/skills/skills/productivity/grill-me@v1.0");
-    expect(source).toEqual({
+    const source = parseSkillUrl(
+      "github:mattpocock/skills/skills/productivity/grill-me@v1.0",
+    );
+    assert.deepStrictEqual(source, {
       type: "github",
       owner: "mattpocock",
       repo: "skills",
@@ -42,7 +47,7 @@ describe("parseSkillUrl", () => {
 
   it("parses github with ref but no path", () => {
     const source = parseSkillUrl("github:owner/repo@v2");
-    expect(source).toEqual({
+    assert.deepStrictEqual(source, {
       type: "github",
       owner: "owner",
       repo: "repo",
@@ -52,7 +57,7 @@ describe("parseSkillUrl", () => {
   });
 
   it("throws on invalid url", () => {
-    expect(() => parseSkillUrl("npm:some-package")).toThrow(/Invalid skill URL/);
-    expect(() => parseSkillUrl("")).toThrow(/Invalid skill URL/);
+    assert.throws(() => parseSkillUrl("npm:some-package"), /Invalid skill URL/);
+    assert.throws(() => parseSkillUrl(""), /Invalid skill URL/);
   });
 });

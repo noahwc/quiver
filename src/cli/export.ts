@@ -1,16 +1,16 @@
 import * as path from "node:path";
 import pc from "picocolors";
-import { readGlobalConfig } from "../core/config.js";
-import { discoverAllSkills } from "../core/skill-discovery.js";
-import { loadAllSkills } from "../core/skill-loader.js";
-import { type QuiverConfigSkill } from "../core/types.js";
+import { readGlobalConfig } from "../core/config.ts";
+import { discoverAllSkills } from "../core/skill-discovery.ts";
+import { loadAllSkills } from "../core/skill-loader.ts";
+import { type QuiverConfigSkill } from "../core/types.ts";
 import {
   DEFAULT_PLUGIN_REPO,
   buildPluginRepo,
   writePluginRepo,
-} from "../export/plugin.js";
-import { collectPortableSkills } from "../export/portable.js";
-import { readPluginMeta } from "../export/meta.js";
+} from "../export/plugin.ts";
+import { collectPortableSkills } from "../export/portable.ts";
+import { readPluginMeta } from "../export/meta.ts";
 
 export interface ExportOptions {
   out?: string;

@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -6,9 +7,9 @@ import {
   collectPortableSkills,
   listSkillAssets,
   validatePortableSkill,
-} from "../../src/export/portable.js";
-import { loadSkill } from "../../src/core/skill-loader.js";
-import { type ResolvedSkill } from "../../src/core/types.js";
+} from "../../src/export/portable.ts";
+import { loadSkill } from "../../src/core/skill-loader.ts";
+import { type ResolvedSkill } from "../../src/core/types.ts";
 
 function makeResolved(
   overrides: Partial<ResolvedSkill["frontmatter"]> = {},
@@ -34,14 +35,17 @@ describe("portable skills", () => {
     const noYap = await loadSkill({ name: "no-yap", url: "builtin" });
 
     const selection = await collectPortableSkills([prSteward, noYap]);
-    expect(selection.skills.map((skill) => skill.name)).toEqual(["pr-steward"]);
-    expect(selection.excludedInstructions).toEqual(["no-yap"]);
+    assert.deepStrictEqual(
+      selection.skills.map((skill) => skill.name),
+      ["pr-steward"],
+    );
+    assert.deepStrictEqual(selection.excludedInstructions, ["no-yap"]);
 
     const content = selection.skills[0]!.content;
-    expect(content).toContain("disable-model-invocation: true");
-    expect(content).not.toMatch(/^type:/m);
-    expect(content).not.toMatch(/^auto-trigger:/m);
-    expect(selection.skills[0]!.assets).toContain("scripts/threads.sh");
+    assert.ok(content.includes("disable-model-invocation: true"));
+    assert.doesNotMatch(content, /^type:/m);
+    assert.doesNotMatch(content, /^auto-trigger:/m);
+    assert.ok(selection.skills[0]!.assets.includes("scripts/threads.sh"));
   });
 
   it("omits disable-model-invocation for auto-triggering skills", async () => {
@@ -50,21 +54,25 @@ describe("portable skills", () => {
       url: "builtin",
     });
     const selection = await collectPortableSkills([autoresearch]);
-    expect(selection.skills[0]!.content).not.toContain(
-      "disable-model-invocation",
+    assert.strictEqual(
+      selection.skills[0]!.content.includes("disable-model-invocation"),
+      false,
     );
   });
 
   it("rejects invalid names and over-long descriptions", () => {
-    expect(() =>
-      validatePortableSkill(makeResolved({ name: "Bad_Name" })),
-    ).toThrow(/name must match/);
-    expect(() =>
-      validatePortableSkill(makeResolved({ description: "x".repeat(1025) })),
-    ).toThrow(/max 1024/);
-    expect(() =>
-      validatePortableSkill(makeResolved({ description: "   " })),
-    ).toThrow(/description is empty/);
+    assert.throws(
+      () => validatePortableSkill(makeResolved({ name: "Bad_Name" })),
+      /name must match/,
+    );
+    assert.throws(
+      () => validatePortableSkill(makeResolved({ description: "x".repeat(1025) })),
+      /max 1024/,
+    );
+    assert.throws(
+      () => validatePortableSkill(makeResolved({ description: "   " })),
+      /description is empty/,
+    );
   });
 
   it("rejects duplicate skill names", async () => {
@@ -75,14 +83,16 @@ describe("portable skills", () => {
       "utf-8",
     );
     const skill = makeResolved({ name: "dup" }, dir);
-    await expect(collectPortableSkills([skill, skill])).rejects.toThrow(
+    await assert.rejects(
+      collectPortableSkills([skill, skill]),
       /Duplicate skill name/,
     );
     await fs.rm(dir, { recursive: true, force: true });
   });
 
-  it.skipIf(process.platform === "win32")(
+  it(
     "rejects symlinks that escape the skill directory",
+    { skip: process.platform === "win32" },
     async () => {
       const outside = await fs.mkdtemp(path.join(os.tmpdir(), "quiver-out-"));
       await fs.writeFile(path.join(outside, "secret.txt"), "nope", "utf-8");
@@ -91,7 +101,7 @@ describe("portable skills", () => {
       await fs.writeFile(path.join(dir, "SKILL.md"), "x", "utf-8");
       await fs.symlink(outside, path.join(dir, "linked"));
 
-      await expect(listSkillAssets(dir)).rejects.toThrow(/escapes/);
+      await assert.rejects(listSkillAssets(dir), /escapes/);
 
       await fs.rm(outside, { recursive: true, force: true });
       await fs.rm(dir, { recursive: true, force: true });

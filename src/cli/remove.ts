@@ -4,9 +4,9 @@ import {
   readGlobalConfig,
   writeGlobalConfig,
   removeSkillFromConfig,
-} from "../core/config.js";
-import { selectSkillsToRemove } from "../tui/skill-browser.js";
-import { sync } from "../core/sync.js";
+} from "../core/config.ts";
+import { selectSkillsToRemove } from "../tui/skill-browser.ts";
+import { sync } from "../core/sync.ts";
 
 export async function remove(): Promise<void> {
   p.intro(pc.bgCyan(pc.black(" quiver remove ")));

@@ -4,8 +4,8 @@ import {
   replaceMarkedSection,
   removeMarkedSection,
   stripLegacyMarkers,
-} from "../section-marker.js";
-import { type OutputFile, QUIVER_BLOCK_NAME } from "../../core/types.js";
+} from "../section-marker.ts";
+import { type OutputFile, QUIVER_BLOCK_NAME } from "../../core/types.ts";
 
 export async function writeOutputs(
   outputs: OutputFile[],

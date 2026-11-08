@@ -1,18 +1,19 @@
-import matter from "gray-matter";
+import { parseFrontmatter } from "../core/frontmatter.ts";
 import {
   type ParsedSkill,
   type SkillFrontmatter,
+  type SkillType,
   SKILL_NAME_REGEX,
-} from "../core/types.js";
+} from "../core/types.ts";
 
 export function parseSkill(markdown: string): ParsedSkill {
-  const { data, content } = matter(markdown);
+  const { data, content } = parseFrontmatter(markdown);
 
   const frontmatter: SkillFrontmatter = {
-    name: data.name,
-    description: data.description,
-    type: data.type ?? "skill",
-    "auto-trigger": data["auto-trigger"] ?? true,
+    name: data.name as string,
+    description: data.description as string,
+    type: ((data.type as string | undefined) ?? "skill") as SkillType,
+    "auto-trigger": (data["auto-trigger"] as boolean | undefined) ?? true,
   };
 
   validateFrontmatter(frontmatter);

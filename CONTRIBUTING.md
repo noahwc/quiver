@@ -11,7 +11,7 @@ npm install
 ```sh
 npm run build   # compile TypeScript to dist/
 npm run dev     # compile in watch mode
-npm test        # run the test suite (vitest)
+npm test        # run the test suite (node built-in test runner)
 npm run lint    # type-check with tsconfig.test.json
 ```
 
@@ -44,7 +44,7 @@ quiver add
 - `plugin/` — generated Agent Plugins subtree; never hand-edit
 - `.claude-plugin/marketplace.json` — repo-root catalog pointing at `plugin/`
 - `registry.json` — catalog of external (third-party) skills available to install
-- `tests/` — vitest tests mirroring the `src/` structure
+- `tests/` — node:test tests mirroring the `src/` structure
 
 ## Adding a built-in skill
 

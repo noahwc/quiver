@@ -1,12 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, beforeEach, afterEach, mock } from "node:test";
+import assert from "node:assert/strict";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import {
   fetchSkill,
   getGitHubTokenCandidates,
-} from "../../src/third-party/github.js";
-import { parseSkillUrl } from "../../src/core/types.js";
+} from "../../src/third-party/github.ts";
+import { parseSkillUrl } from "../../src/core/types.ts";
 
 const source = parseSkillUrl(
   "github:acme/private-skills/skills/my-skill@main",
@@ -31,13 +32,13 @@ describe("fetchSkill", () => {
   });
 
   afterEach(async () => {
-    vi.restoreAllMocks();
+    mock.restoreAll();
     await fs.rm(cacheDir, { recursive: true, force: true });
   });
 
   it("fetches SKILL.md plus bundled scripts, preserving structure", async () => {
     const dir = "skills/my-skill";
-    const fetchMock = vi.fn(async (url: string | URL): Promise<Response> => {
+    mock.method(globalThis, "fetch", async (url: string | URL): Promise<Response> => {
       const u = String(url);
       if (u.includes(`/contents/${dir}?`)) {
         return jsonResponse([
@@ -60,19 +61,22 @@ describe("fetchSkill", () => {
       if (u.includes("run.sh")) return rawResponse("echo hi");
       throw new Error(`unexpected url ${u}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
 
     const destDir = await fetchSkill(source, cacheDir, "tok");
 
-    expect(await fs.readFile(path.join(destDir, "SKILL.md"), "utf-8")).toContain(
-      "Body",
+    assert.ok(
+      (await fs.readFile(path.join(destDir, "SKILL.md"), "utf-8")).includes(
+        "Body",
+      ),
     );
-    expect(
+    assert.strictEqual(
       await fs.readFile(path.join(destDir, "reference.md"), "utf-8"),
-    ).toBe("# Reference");
-    expect(
+      "# Reference",
+    );
+    assert.strictEqual(
       await fs.readFile(path.join(destDir, "scripts", "run.sh"), "utf-8"),
-    ).toBe("echo hi");
+      "echo hi",
+    );
   });
 
   it("removes files deleted upstream on a re-fetch (sync --refresh)", async () => {
@@ -82,68 +86,62 @@ describe("fetchSkill", () => {
       ...(withRef ? [{ type: "file", path: `${dir}/reference.md` }] : []),
     ];
     let hasRef = true;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string | URL): Promise<Response> => {
-        const u = String(url);
-        if (u.includes(`/contents/${dir}?`)) return jsonResponse(listing(hasRef));
-        if (u.includes("SKILL.md"))
-          return rawResponse("---\nname: my-skill\ndescription: t\n---\nBody");
-        if (u.includes("reference.md")) return rawResponse("# Reference");
-        throw new Error(`unexpected url ${u}`);
-      }),
-    );
+    mock.method(globalThis, "fetch", async (url: string | URL): Promise<Response> => {
+      const u = String(url);
+      if (u.includes(`/contents/${dir}?`)) return jsonResponse(listing(hasRef));
+      if (u.includes("SKILL.md"))
+        return rawResponse("---\nname: my-skill\ndescription: t\n---\nBody");
+      if (u.includes("reference.md")) return rawResponse("# Reference");
+      throw new Error(`unexpected url ${u}`);
+    });
 
     const destDir = await fetchSkill(source, cacheDir, "tok");
-    expect(
+    assert.strictEqual(
       await fs.readFile(path.join(destDir, "reference.md"), "utf-8"),
-    ).toBe("# Reference");
+      "# Reference",
+    );
 
     // Upstream deletes reference.md, then we re-fetch.
     hasRef = false;
     await fetchSkill(source, cacheDir, "tok");
 
-    await expect(
+    await assert.rejects(
       fs.readFile(path.join(destDir, "reference.md"), "utf-8"),
-    ).rejects.toThrow();
-    expect(await fs.readFile(path.join(destDir, "SKILL.md"), "utf-8")).toContain(
-      "Body",
+    );
+    assert.ok(
+      (await fs.readFile(path.join(destDir, "SKILL.md"), "utf-8")).includes(
+        "Body",
+      ),
     );
   });
 
   it("sends an Authorization header when a token is provided", async () => {
-    const fetchMock = vi.fn(async (): Promise<Response> =>
-      jsonResponse([{ type: "file", path: "skills/my-skill/SKILL.md" }]),
-    );
-    // Fail fast after listing by making the raw fetch throw via missing SKILL.md check.
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string | URL, init?: RequestInit): Promise<Response> => {
-        const u = String(url);
-        const headers = (init?.headers ?? {}) as Record<string, string>;
-        expect(headers.Authorization).toBe("Bearer tok");
-        if (u.includes("/contents/skills/my-skill?")) {
-          return jsonResponse([
-            { type: "file", path: "skills/my-skill/SKILL.md" },
-          ]);
-        }
-        return rawResponse("---\nname: my-skill\n---\nBody");
-      }),
-    );
+    mock.method(globalThis, "fetch", async (
+      url: string | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      const u = String(url);
+      const headers = (init?.headers ?? {}) as Record<string, string>;
+      assert.strictEqual(headers.Authorization, "Bearer tok");
+      if (u.includes("/contents/skills/my-skill?")) {
+        return jsonResponse([
+          { type: "file", path: "skills/my-skill/SKILL.md" },
+        ]);
+      }
+      return rawResponse("---\nname: my-skill\n---\nBody");
+    });
 
     await fetchSkill(source, cacheDir, "tok");
-    void fetchMock;
   });
 
   it("gives a private-repo hint on 404 without a token", async () => {
-    vi.stubGlobal(
+    mock.method(
+      globalThis,
       "fetch",
-      vi.fn(async (): Promise<Response> => new Response("", { status: 404 })),
+      async (): Promise<Response> => new Response("", { status: 404 }),
     );
 
-    await expect(fetchSkill(source, cacheDir, "")).rejects.toThrow(
-      /private repository/i,
-    );
+    await assert.rejects(fetchSkill(source, cacheDir, ""), /private repository/i);
   });
 });
 
@@ -155,13 +153,13 @@ describe("getGitHubTokenCandidates", () => {
 
   it("includes the environment token as a candidate", () => {
     process.env.GITHUB_TOKEN = "env-token";
-    expect(getGitHubTokenCandidates()).toContain("env-token");
+    assert.ok(getGitHubTokenCandidates().includes("env-token"));
   });
 
   it("de-duplicates identical env and CLI tokens", () => {
     process.env.GITHUB_TOKEN = "dupe";
     process.env.GH_TOKEN = "dupe";
     const candidates = getGitHubTokenCandidates();
-    expect(candidates.filter((t) => t === "dupe")).toHaveLength(1);
+    assert.strictEqual(candidates.filter((t) => t === "dupe").length, 1);
   });
 });

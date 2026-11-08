@@ -1,6 +1,6 @@
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import { readGlobalConfig } from "../core/config.js";
+import { readGlobalConfig } from "../core/config.ts";
 
 export async function list(): Promise<void> {
   p.intro(pc.bgCyan(pc.black(" quiver list ")));

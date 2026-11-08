@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { sanitizeFrontmatter } from "../../src/third-party/github.js";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { sanitizeFrontmatter } from "../../src/third-party/github.ts";
 
 describe("sanitizeFrontmatter", () => {
   it("flattens a folded scalar description into a quoted string", () => {
@@ -16,9 +17,11 @@ auto-trigger: true
 
     const result = sanitizeFrontmatter(input);
 
-    expect(result).toContain('description: "This is a multi-line folded description."');
-    expect(result).not.toContain("description: >");
-    expect(result).toContain("# Body content");
+    assert.ok(
+      result.includes('description: "This is a multi-line folded description."'),
+    );
+    assert.ok(!result.includes("description: >"));
+    assert.ok(result.includes("# Body content"));
   });
 
   it("quotes plain string descriptions that contain colons", () => {
@@ -31,7 +34,9 @@ type: skill
 Body`;
 
     const result = sanitizeFrontmatter(input);
-    expect(result).toContain('description: "Use when: presenting findings"');
+    assert.ok(
+      result.includes('description: "Use when: presenting findings"'),
+    );
   });
 
   it("preserves boolean and number values unquoted", () => {
@@ -45,8 +50,8 @@ auto-trigger: true
 Body`;
 
     const result = sanitizeFrontmatter(input);
-    expect(result).toContain("auto-trigger: true");
-    expect(result).not.toContain('auto-trigger: "true"');
+    assert.ok(result.includes("auto-trigger: true"));
+    assert.ok(!result.includes('auto-trigger: "true"'));
   });
 
   it("escapes double quotes inside description values", () => {
@@ -60,12 +65,12 @@ type: skill
 Body`;
 
     const result = sanitizeFrontmatter(input);
-    expect(result).toContain('description: "Do \\"this\\" and \\"that\\".');
+    assert.ok(result.includes('description: "Do \\"this\\" and \\"that\\".'));
   });
 
   it("returns the original markdown when there is no frontmatter", () => {
     const input = "# Just a heading\n\nSome content.";
-    expect(sanitizeFrontmatter(input)).toBe(input);
+    assert.strictEqual(sanitizeFrontmatter(input), input);
   });
 
   it("preserves body content after sanitization", () => {
@@ -83,8 +88,8 @@ type: skill
 - bullet two`;
 
     const result = sanitizeFrontmatter(input);
-    expect(result).toContain("## Section 1");
-    expect(result).toContain("- bullet one");
-    expect(result).toContain("- bullet two");
+    assert.ok(result.includes("## Section 1"));
+    assert.ok(result.includes("- bullet one"));
+    assert.ok(result.includes("- bullet two"));
   });
 });

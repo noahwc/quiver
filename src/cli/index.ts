@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { add } from "./add.js";
-import { remove } from "./remove.js";
-import { list } from "./list.js";
-import { syncCommand } from "./sync.js";
-import { exportCommand } from "./export.js";
+import { add } from "./add.ts";
+import { remove } from "./remove.ts";
+import { list } from "./list.ts";
+import { syncCommand } from "./sync.ts";
+import { exportCommand } from "./export.ts";
 
 const program = new Command();
 

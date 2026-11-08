@@ -1,9 +1,9 @@
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import matter from "gray-matter";
-import { type OutputFile, type ResolvedSkill } from "../core/types.js";
-import { writeOutputs } from "./writers/markdown-writer.js";
+import { stringifyFrontmatter } from "../core/frontmatter.ts";
+import { type OutputFile, type ResolvedSkill } from "../core/types.ts";
+import { writeOutputs } from "./writers/markdown-writer.ts";
 
 const home = os.homedir();
 
@@ -162,11 +162,11 @@ export function renderSkillMarkdown(skill: ResolvedSkill): string {
     description: fm.description,
   };
   if (!fm["auto-trigger"]) data["disable-model-invocation"] = true;
-  // Keep descriptions on one line. gray-matter forwards unknown options to
-  // js-yaml, and strict clients have historically tripped on folded scalars.
-  return matter.stringify(`${skill.baseContent.trimEnd()}\n`, data, {
+  // Keep descriptions on one line — strict clients have historically tripped
+  // on folded scalars.
+  return stringifyFrontmatter(`${skill.baseContent.trimEnd()}\n`, data, {
     lineWidth: -1,
-  } as never);
+  });
 }
 
 function copilotFile(skill: ResolvedSkill): string {

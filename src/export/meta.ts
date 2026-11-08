@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { type PluginMeta } from "./plugin.js";
+import { type PluginMeta } from "./plugin.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

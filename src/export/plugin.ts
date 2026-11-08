@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { type PortableSelection } from "./portable.js";
+import { type PortableSelection } from "./portable.ts";
 
 export interface PluginMeta {
   version: string;

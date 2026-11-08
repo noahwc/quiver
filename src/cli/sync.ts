@@ -1,6 +1,6 @@
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import { sync } from "../core/sync.js";
+import { sync } from "../core/sync.ts";
 
 export async function syncCommand(
   options: { refresh?: boolean; dryRun?: boolean } = {},

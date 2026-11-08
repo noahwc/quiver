@@ -15,10 +15,13 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "quiver": "tsx src/cli/index.ts",
-    "plugin:sync": "tsx src/cli/index.ts export --out plugin --subtree --force",
-    "test": "vitest run",
+    "quiver": "node src/cli/index.ts",
+    "plugin:sync": "node src/cli/index.ts export --out plugin --subtree --force",
+    "test": "node --test \"tests/**/*.test.ts\"",
     "lint": "tsc -p tsconfig.test.json"
+  },
+  "engines": {
+    "node": ">=23.6"
   },
   "keywords": [
     "ai",
@@ -35,14 +38,12 @@
   "dependencies": {
     "@clack/prompts": "^0.9.1",
     "commander": "^13.1.0",
-    "gray-matter": "^4.0.3",
+    "js-yaml": "^5.5.0",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {
-    "@types/node": "^22.15.0",
-    "tsx": "^4.23.1",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.0"
+    "@types/node": "^24.6.0",
+    "typescript": "^5.8.3"
   },
   "files": [
     "dist",

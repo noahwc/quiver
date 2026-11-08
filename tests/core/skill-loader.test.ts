@@ -1,14 +1,15 @@
-import { describe, it, expect } from "vitest";
-import { loadAllSkills } from "../../src/core/skill-loader.js";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { loadAllSkills } from "../../src/core/skill-loader.ts";
 
 describe("skill-loader", () => {
   it("loads builtin skills", async () => {
     const skills = await loadAllSkills([
       { name: "no-yap", url: "builtin" },
     ]);
-    expect(skills).toHaveLength(1);
-    expect(skills[0].frontmatter.name).toBe("no-yap");
-    expect(skills[0].frontmatter.type).toBe("instruction");
+    assert.strictEqual(skills.length, 1);
+    assert.strictEqual(skills[0].frontmatter.name, "no-yap");
+    assert.strictEqual(skills[0].frontmatter.type, "instruction");
   });
 
   it("loads multiple builtin skills", async () => {
@@ -17,11 +18,10 @@ describe("skill-loader", () => {
       { name: "concise-responses", url: "builtin" },
       { name: "project-conventions", url: "builtin" },
     ]);
-    expect(skills).toHaveLength(3);
-    expect(skills.map((s) => s.frontmatter.name)).toEqual([
-      "no-yap",
-      "concise-responses",
-      "project-conventions",
-    ]);
+    assert.strictEqual(skills.length, 3);
+    assert.deepStrictEqual(
+      skills.map((s) => s.frontmatter.name),
+      ["no-yap", "concise-responses", "project-conventions"],
+    );
   });
 });

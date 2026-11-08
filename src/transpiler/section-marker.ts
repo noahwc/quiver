@@ -1,7 +1,7 @@
 import {
   SECTION_MARKER_START,
   SECTION_MARKER_END,
-} from "../core/types.js";
+} from "../core/types.ts";
 
 export function wrapInSectionMarker(
   skillName: string,

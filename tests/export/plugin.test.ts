@@ -1,18 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, mock } from "node:test";
+import assert from "node:assert/strict";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import matter from "gray-matter";
 import {
   buildPluginRepo,
   writePluginRepo,
   type PluginMeta,
-} from "../../src/export/plugin.js";
-import { collectPortableSkills } from "../../src/export/portable.js";
-import { discoverAllSkills } from "../../src/core/skill-discovery.js";
-import { loadSkill } from "../../src/core/skill-loader.js";
-import { type ResolvedSkill } from "../../src/core/types.js";
-import { exportCommand } from "../../src/cli/export.js";
+} from "../../src/export/plugin.ts";
+import { parseFrontmatter } from "../../src/core/frontmatter.ts";
+import { collectPortableSkills } from "../../src/export/portable.ts";
+import { discoverAllSkills } from "../../src/core/skill-discovery.ts";
+import { loadSkill } from "../../src/core/skill-loader.ts";
+import { type ResolvedSkill } from "../../src/core/types.ts";
+import { exportCommand } from "../../src/cli/export.ts";
 
 const meta: PluginMeta = {
   version: "9.9.9",
@@ -70,14 +71,15 @@ describe("buildPluginRepo", () => {
         "utf-8",
       ),
     );
-    expect(manifest.$schema).toBe(
+    assert.strictEqual(
+      manifest.$schema,
       "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
     );
-    expect(manifest.name).toBe("quiver");
-    expect(manifest.version).toBe("9.9.9");
-    expect(manifest.author).toEqual(meta.author);
-    expect(manifest.license).toBe("MIT");
-    expect(Object.keys(manifest).sort()).toEqual([
+    assert.strictEqual(manifest.name, "quiver");
+    assert.strictEqual(manifest.version, "9.9.9");
+    assert.deepStrictEqual(manifest.author, meta.author);
+    assert.strictEqual(manifest.license, "MIT");
+    assert.deepStrictEqual(Object.keys(manifest).sort(), [
       "$schema",
       "author",
       "description",
@@ -93,7 +95,7 @@ describe("buildPluginRepo", () => {
     // marketplace installs resolve to the same directory.
     await fs.access(path.join(out, "plugin.json"));
     await fs.access(path.join(out, "skills"));
-    await expect(fs.access(path.join(out, "plugins"))).rejects.toThrow();
+    await assert.rejects(fs.access(path.join(out, "plugins")));
 
     const marketplace = JSON.parse(
       await fs.readFile(
@@ -101,25 +103,25 @@ describe("buildPluginRepo", () => {
         "utf-8",
       ),
     );
-    expect(marketplace.name).toBe("quiver");
-    expect(marketplace.owner.name).toBe("Test Author");
+    assert.strictEqual(marketplace.name, "quiver");
+    assert.strictEqual(marketplace.owner.name, "Test Author");
     // VS Code/Copilot plugin-source contract:
     // - `.claude-plugin/marketplace.json` is one of the recognized catalog paths
     // - a single entry means "add as source" installs it directly
     // - source "." resolves to the repository root
     // - root plugin.json carries the Agent Plugins $schema, selecting the
     //   AgentPlugin adapter over the legacy Copilot/Claude formats
-    expect(marketplace.plugins).toHaveLength(1);
-    expect(marketplace.plugins[0].source).toBe(".");
-    expect(marketplace.plugins[0].name).toBe("quiver");
-    expect(marketplace.plugins[0].version).toBe("9.9.9");
-    expect(manifest.$schema.startsWith("https://agent-plugins.org/")).toBe(true);
+    assert.strictEqual(marketplace.plugins.length, 1);
+    assert.strictEqual(marketplace.plugins[0].source, ".");
+    assert.strictEqual(marketplace.plugins[0].name, "quiver");
+    assert.strictEqual(marketplace.plugins[0].version, "9.9.9");
+    assert.strictEqual(manifest.$schema.startsWith("https://agent-plugins.org/"), true);
 
     const piPackage = JSON.parse(
       await fs.readFile(path.join(out, "package.json"), "utf-8"),
     );
-    expect(piPackage.keywords).toContain("pi-package");
-    expect(piPackage.pi.skills).toEqual(["./skills"]);
+    assert.ok(piPackage.keywords.includes("pi-package"));
+    assert.deepStrictEqual(piPackage.pi.skills, ["./skills"]);
 
     const skillsDir = path.join(out, "skills");
     const skillNames = (await fs.readdir(skillsDir, { withFileTypes: true }))
@@ -130,41 +132,39 @@ describe("buildPluginRepo", () => {
       .filter((skill) => skill.url === "builtin" && skill.type === "skill")
       .map((skill) => skill.name)
       .sort();
-    expect(skillNames).toEqual(expectedSkillNames);
-    expect(skillNames).toContain("pr-steward");
-    expect(skillNames).not.toContain("no-yap");
+    assert.deepStrictEqual(skillNames, expectedSkillNames);
+    assert.ok(skillNames.includes("pr-steward"));
+    assert.strictEqual(skillNames.includes("no-yap"), false);
     for (const name of skillNames) {
       await fs.access(path.join(skillsDir, name, "SKILL.md"));
     }
 
-    const prSteward = matter(
+    const prSteward = parseFrontmatter(
       await fs.readFile(path.join(skillsDir, "pr-steward", "SKILL.md"), "utf-8"),
     );
-    expect(prSteward.data.name).toBe("pr-steward");
-    expect(prSteward.data["disable-model-invocation"]).toBe(true);
-    expect(prSteward.data.type).toBeUndefined();
-    expect(prSteward.data["auto-trigger"]).toBeUndefined();
+    assert.strictEqual(prSteward.data.name, "pr-steward");
+    assert.strictEqual(prSteward.data["disable-model-invocation"], true);
+    assert.strictEqual(prSteward.data.type, undefined);
+    assert.strictEqual(prSteward.data["auto-trigger"], undefined);
 
-    const autoresearch = matter(
+    const autoresearch = parseFrontmatter(
       await fs.readFile(
         path.join(skillsDir, "autoresearch", "SKILL.md"),
         "utf-8",
       ),
     );
-    expect(autoresearch.data["disable-model-invocation"]).toBeUndefined();
+    assert.strictEqual(autoresearch.data["disable-model-invocation"], undefined);
 
     await fs.access(path.join(skillsDir, "quiz-me", "template.html"));
     await fs.access(path.join(skillsDir, "pr-steward", "scripts", "threads.sh"));
     await fs.access(
       path.join(skillsDir, "pr-steward", "reference", "automation.md"),
     );
-    await expect(
-      fs.access(path.join(skillsDir, "no-yap")),
-    ).rejects.toThrow();
+    await assert.rejects(fs.access(path.join(skillsDir, "no-yap")));
 
     const readme = await fs.readFile(path.join(out, "README.md"), "utf-8");
-    expect(readme).toContain("acme/quiver-plugin");
-    expect(readme).toContain("Always-on instructions");
+    assert.ok(readme.includes("acme/quiver-plugin"));
+    assert.ok(readme.includes("Always-on instructions"));
 
     await fs.rm(out, { recursive: true, force: true });
   });
@@ -183,9 +183,12 @@ describe("buildPluginRepo", () => {
     await writePluginRepo(files, out, { force: true });
     const second = await readTree(out);
 
-    expect([...second.keys()].sort()).toEqual([...first.keys()].sort());
+    assert.deepStrictEqual(
+      [...second.keys()].sort(),
+      [...first.keys()].sort(),
+    );
     for (const [file, content] of first) {
-      expect(second.get(file)?.equals(content)).toBe(true);
+      assert.ok(second.get(file)?.equals(content));
     }
 
     await fs.rm(out, { recursive: true, force: true });
@@ -199,11 +202,11 @@ describe("buildPluginRepo", () => {
       repo: "acme/quiver-plugin",
     });
 
-    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const log = mock.method(console, "log", () => {});
     await writePluginRepo(files, out, { dryRun: true });
-    log.mockRestore();
+    log.mock.restore();
 
-    await expect(fs.access(out)).rejects.toThrow();
+    await assert.rejects(fs.access(out));
   });
 
   it("refuses a non-empty output directory unless --force is set", async () => {
@@ -215,15 +218,15 @@ describe("buildPluginRepo", () => {
       repo: "acme/quiver-plugin",
     });
 
-    await expect(writePluginRepo(files, out)).rejects.toThrow(
-      /Output directory is not empty/,
-    );
-    await expect(fs.readFile(path.join(out, "keep.txt"), "utf-8")).resolves.toBe(
+    await assert.rejects(writePluginRepo(files, out), /Output directory is not empty/);
+    assert.strictEqual(
+      await fs.readFile(path.join(out, "keep.txt"), "utf-8"),
       "keep",
     );
 
     await writePluginRepo(files, out, { force: true });
-    await expect(fs.readFile(path.join(out, "keep.txt"), "utf-8")).resolves.toBe(
+    assert.strictEqual(
+      await fs.readFile(path.join(out, "keep.txt"), "utf-8"),
       "keep",
     );
 
@@ -251,8 +254,9 @@ describe("buildPluginRepo", () => {
       { force: true },
     );
 
-    await expect(fs.access(quizPath)).rejects.toThrow();
-    await expect(fs.readFile(path.join(out, "NOTES.md"), "utf-8")).resolves.toBe(
+    await assert.rejects(fs.access(quizPath));
+    assert.strictEqual(
+      await fs.readFile(path.join(out, "NOTES.md"), "utf-8"),
       "user notes",
     );
 
@@ -291,7 +295,7 @@ describe("buildPluginRepo", () => {
     const copied = await fs.readFile(
       path.join(out, "skills", "binary-skill", "icon.png"),
     );
-    expect(copied.equals(icon)).toBe(true);
+    assert.ok(copied.equals(icon));
 
     await fs.rm(skillDir, { recursive: true, force: true });
     await fs.rm(out, { recursive: true, force: true });
@@ -300,16 +304,17 @@ describe("buildPluginRepo", () => {
 
 describe("quiver export command", () => {
   it("rejects --include-third-party with a clear message", async () => {
-    await expect(exportCommand({ includeThirdParty: true })).rejects.toThrow(
+    await assert.rejects(
+      exportCommand({ includeThirdParty: true }),
       /Third-party skills are not exported/,
     );
   });
 
   it("writes the plugin repo using quiver's package metadata", async () => {
     const out = await tempDir("quiver-cli-export-");
-    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const log = mock.method(console, "log", () => {});
     await exportCommand({ out });
-    log.mockRestore();
+    log.mock.restore();
 
     const pkg = JSON.parse(
       await fs.readFile(path.join(process.cwd(), "package.json"), "utf-8"),
@@ -320,8 +325,8 @@ describe("quiver export command", () => {
         "utf-8",
       ),
     );
-    expect(manifest.version).toBe(pkg.version);
-    expect(manifest.author.name).toBe(pkg.author.name);
+    assert.strictEqual(manifest.version, pkg.version);
+    assert.strictEqual(manifest.author.name, pkg.author.name);
 
     await fs.rm(out, { recursive: true, force: true });
   });

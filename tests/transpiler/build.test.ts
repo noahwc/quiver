@@ -1,11 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   generateOutputs,
   generateAssetOutputs,
   INSTRUCTION_FILES,
   SKILL_ROOTS,
-} from "../../src/transpiler/index.js";
-import { type ResolvedSkill } from "../../src/core/types.js";
+} from "../../src/transpiler/index.ts";
+import { type ResolvedSkill } from "../../src/core/types.ts";
 import * as os from "node:os";
 import * as path from "node:path";
 import * as fs from "node:fs/promises";
@@ -43,9 +44,9 @@ describe("generateOutputs — skills", () => {
       const file = outputs.find(
         (o) => o.path === path.join(root, "grill-me", "SKILL.md"),
       );
-      expect(file).toBeDefined();
-      expect(file!.content).toContain("name: grill-me");
-      expect(file!.mergeStrategy).toBe("overwrite");
+      assert.ok(file);
+      assert.ok(file.content.includes("name: grill-me"));
+      assert.strictEqual(file.mergeStrategy, "overwrite");
     }
   });
 
@@ -54,9 +55,9 @@ describe("generateOutputs — skills", () => {
       makeSkill({ type: "skill", name: "grill-me", "auto-trigger": false }),
     ]);
     const skillFiles = outputs.filter((o) => o.path.endsWith("SKILL.md"));
-    expect(skillFiles).toHaveLength(SKILL_ROOTS.length);
+    assert.strictEqual(skillFiles.length, SKILL_ROOTS.length);
     for (const file of skillFiles) {
-      expect(file.content).toContain("disable-model-invocation: true");
+      assert.ok(file.content.includes("disable-model-invocation: true"));
     }
   });
 
@@ -65,9 +66,9 @@ describe("generateOutputs — skills", () => {
       makeSkill({ type: "skill", name: "grill-me", "auto-trigger": true }),
     ]);
     const skillFiles = outputs.filter((o) => o.path.endsWith("SKILL.md"));
-    expect(skillFiles).toHaveLength(SKILL_ROOTS.length);
+    assert.strictEqual(skillFiles.length, SKILL_ROOTS.length);
     for (const file of skillFiles) {
-      expect(file.content).not.toContain("disable-model-invocation");
+      assert.ok(!file.content.includes("disable-model-invocation"));
     }
   });
 
@@ -78,11 +79,11 @@ describe("generateOutputs — skills", () => {
     const overwriteOutputs = outputs.filter(
       (o) => o.mergeStrategy === "overwrite",
     );
-    expect(overwriteOutputs).toHaveLength(SKILL_ROOTS.length);
+    assert.strictEqual(overwriteOutputs.length, SKILL_ROOTS.length);
     const roots = overwriteOutputs.map((o) =>
       path.relative(home, o.path).split(path.sep).slice(0, 2).join(path.sep),
     );
-    expect(roots).toEqual([
+    assert.deepStrictEqual(roots, [
       path.join(".claude", "skills"),
       path.join(".copilot", "skills"),
       path.join(".agents", "skills"),
@@ -93,12 +94,12 @@ describe("generateOutputs — skills", () => {
     const outputs = generateOutputs([
       makeSkill({ type: "skill", name: "grill-me" }),
     ]);
-    expect(INSTRUCTION_FILES).toHaveLength(4);
+    assert.strictEqual(INSTRUCTION_FILES.length, 4);
     for (const filePath of INSTRUCTION_FILES) {
       const output = outputs.find((o) => o.path === filePath);
-      expect(output).toBeDefined();
-      expect(output!.content.trim()).toBe("");
-      expect(output!.mergeStrategy).toBe("section-marker");
+      assert.ok(output);
+      assert.strictEqual(output.content.trim(), "");
+      assert.strictEqual(output.mergeStrategy, "section-marker");
     }
   });
 });
@@ -108,9 +109,9 @@ describe("generateOutputs — instructions", () => {
     const outputs = generateOutputs([makeSkill()]);
     for (const filePath of INSTRUCTION_FILES) {
       const output = outputs.find((o) => o.path === filePath);
-      expect(output).toBeDefined();
-      expect(output!.mergeStrategy).toBe("section-marker");
-      expect(output!.content).toContain("Be concise");
+      assert.ok(output);
+      assert.strictEqual(output.mergeStrategy, "section-marker");
+      assert.ok(output.content.includes("Be concise"));
     }
 
     const copilot = outputs.find(
@@ -118,9 +119,9 @@ describe("generateOutputs — instructions", () => {
         o.path ===
         path.join(home, ".copilot", "instructions", "no-yap.instructions.md"),
     );
-    expect(copilot).toBeDefined();
-    expect(copilot!.content).toContain('applyTo: "**"');
-    expect(copilot!.content).toContain("Be concise");
+    assert.ok(copilot);
+    assert.ok(copilot.content.includes('applyTo: "**"'));
+    assert.ok(copilot.content.includes("Be concise"));
   });
 
   it("produces no instruction files when there are no instructions", () => {
@@ -130,10 +131,9 @@ describe("generateOutputs — instructions", () => {
     const copilotFiles = outputs.filter(
       (o) => o.path.includes("instructions") && o.mergeStrategy === "overwrite",
     );
-    expect(copilotFiles).toHaveLength(0);
+    assert.strictEqual(copilotFiles.length, 0);
   });
 });
-
 
 describe("generateAssetOutputs — bundled skill assets", () => {
   async function tmpSkillDir(files: Record<string, string>): Promise<string> {
@@ -157,9 +157,9 @@ describe("generateAssetOutputs — bundled skill assets", () => {
     for (const root of SKILL_ROOTS) {
       const expected = path.join(root, "quiz-me", "template.html");
       const asset = outputs.find((o) => o.path === expected);
-      expect(asset).toBeDefined();
-      expect(asset!.content).toBe("<html>tpl</html>");
-      expect(asset!.mergeStrategy).toBe("overwrite");
+      assert.ok(asset);
+      assert.strictEqual(asset.content, "<html>tpl</html>");
+      assert.strictEqual(asset.mergeStrategy, "overwrite");
     }
     await fs.rm(dir, { recursive: true, force: true });
   });
@@ -172,15 +172,18 @@ describe("generateAssetOutputs — bundled skill assets", () => {
     const outputs = await generateAssetOutputs([
       { ...makeSkill({ type: "skill", name: "quiz-me" }), skillDir: dir },
     ]);
-    expect(outputs.some((o) => o.path.endsWith("SKILL.md"))).toBe(false);
+    assert.strictEqual(
+      outputs.some((o) => o.path.endsWith("SKILL.md")),
+      false,
+    );
     for (const root of SKILL_ROOTS) {
-      expect(
+      assert.ok(
         outputs.some(
           (o) =>
             o.path ===
             path.join(root, "quiz-me", "assets", "quiz.css"),
         ),
-      ).toBe(true);
+      );
     }
     await fs.rm(dir, { recursive: true, force: true });
   });
@@ -190,7 +193,7 @@ describe("generateAssetOutputs — bundled skill assets", () => {
     const outputs = await generateAssetOutputs([
       { ...makeSkill({ type: "instruction", name: "no-yap" }), skillDir: dir },
     ]);
-    expect(outputs).toHaveLength(0);
+    assert.strictEqual(outputs.length, 0);
     await fs.rm(dir, { recursive: true, force: true });
   });
 });

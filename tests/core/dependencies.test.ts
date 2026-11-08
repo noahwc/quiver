@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { withDependencies } from "../../src/core/dependencies.js";
-import { type DiscoveredSkill } from "../../src/core/skill-discovery.js";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { withDependencies } from "../../src/core/dependencies.ts";
+import { type DiscoveredSkill } from "../../src/core/skill-discovery.ts";
 
 function skill(
   name: string,
@@ -19,9 +20,10 @@ function skill(
 describe("withDependencies", () => {
   it("leaves skills without dependencies untouched", () => {
     const catalog = [skill("no-yap", { url: "builtin" })];
-    expect(withDependencies([{ name: "no-yap", url: "builtin" }], catalog)).toEqual([
-      { name: "no-yap", url: "builtin" },
-    ]);
+    assert.deepStrictEqual(
+      withDependencies([{ name: "no-yap", url: "builtin" }], catalog),
+      [{ name: "no-yap", url: "builtin" }],
+    );
   });
 
   it("adds a required skill", () => {
@@ -35,7 +37,7 @@ describe("withDependencies", () => {
       catalog,
     );
 
-    expect(result).toEqual([
+    assert.deepStrictEqual(result, [
       { name: "grill-me", url: "github:owner/repo/skills/grill-me" },
       { name: "grilling", url: "github:owner/repo/skills/grilling" },
     ]);
@@ -55,11 +57,10 @@ describe("withDependencies", () => {
       catalog,
     );
 
-    expect(result.map((s) => s.name)).toEqual([
-      "grill-with-docs",
-      "grilling",
-      "domain-modeling",
-    ]);
+    assert.deepStrictEqual(
+      result.map((s) => s.name),
+      ["grill-with-docs", "grilling", "domain-modeling"],
+    );
   });
 
   it("keeps an explicitly selected dependency once", () => {
@@ -76,25 +77,36 @@ describe("withDependencies", () => {
       catalog,
     );
 
-    expect(result.filter((s) => s.name === "grilling")).toHaveLength(1);
+    assert.strictEqual(result.filter((s) => s.name === "grilling").length, 1);
   });
 
   it("fails loudly when a requirement is missing from the catalog", () => {
     const catalog = [skill("grill-me", { requires: ["grilling"] })];
 
-    expect(() =>
-      withDependencies(
-        [{ name: "grill-me", url: "github:owner/repo/skills/grill-me" }],
-        catalog,
-      ),
-    ).toThrow(/requires "grilling"/);
+    assert.throws(
+      () =>
+        withDependencies(
+          [{ name: "grill-me", url: "github:owner/repo/skills/grill-me" }],
+          catalog,
+        ),
+      /requires "grilling"/,
+    );
   });
 
   it("terminates on dependency cycles", () => {
-    const catalog = [skill("a", { requires: ["b"] }), skill("b", { requires: ["a"] })];
+    const catalog = [
+      skill("a", { requires: ["b"] }),
+      skill("b", { requires: ["a"] }),
+    ];
 
-    const result = withDependencies([{ name: "a", url: "github:owner/repo/skills/a" }], catalog);
+    const result = withDependencies(
+      [{ name: "a", url: "github:owner/repo/skills/a" }],
+      catalog,
+    );
 
-    expect(result.map((s) => s.name).sort()).toEqual(["a", "b"]);
+    assert.deepStrictEqual(
+      result.map((s) => s.name).sort(),
+      ["a", "b"],
+    );
   });
 });

@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { parseSkill } from "../../src/transpiler/parser.js";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { parseSkill } from "../../src/transpiler/parser.ts";
 
 describe("parseSkill", () => {
   it("parses a basic instruction skill", () => {
@@ -15,10 +16,10 @@ auto-trigger: false
 - Be concise`;
 
     const result = parseSkill(md);
-    expect(result.frontmatter.name).toBe("no-yap");
-    expect(result.frontmatter.type).toBe("instruction");
-    expect(result.frontmatter["auto-trigger"]).toBe(false);
-    expect(result.baseContent).toContain("Do not add preamble");
+    assert.strictEqual(result.frontmatter.name, "no-yap");
+    assert.strictEqual(result.frontmatter.type, "instruction");
+    assert.strictEqual(result.frontmatter["auto-trigger"], false);
+    assert.ok(result.baseContent.includes("Do not add preamble"));
   });
 
   it("keeps the full body as baseContent", () => {
@@ -34,8 +35,8 @@ type: skill
 Body text here.`;
 
     const result = parseSkill(md);
-    expect(result.baseContent).toContain("# Heading");
-    expect(result.baseContent).toContain("Body text here.");
+    assert.ok(result.baseContent.includes("# Heading"));
+    assert.ok(result.baseContent.includes("Body text here."));
   });
 
   it("throws on invalid name", () => {
@@ -46,7 +47,7 @@ type: instruction
 ---
 
 Test`;
-    expect(() => parseSkill(md)).toThrow(/Invalid skill name/);
+    assert.throws(() => parseSkill(md), /Invalid skill name/);
   });
 
   it("throws on missing description", () => {
@@ -56,7 +57,7 @@ type: instruction
 ---
 
 Test`;
-    expect(() => parseSkill(md)).toThrow(/requires a description/);
+    assert.throws(() => parseSkill(md), /requires a description/);
   });
 
   it("throws on invalid type", () => {
@@ -67,7 +68,7 @@ type: agent
 ---
 
 Test`;
-    expect(() => parseSkill(md)).toThrow(/invalid type/);
+    assert.throws(() => parseSkill(md), /invalid type/);
   });
 
   it("defaults auto-trigger to true and type to skill", () => {
@@ -78,7 +79,7 @@ description: A test
 
 Test`;
     const result = parseSkill(md);
-    expect(result.frontmatter["auto-trigger"]).toBe(true);
-    expect(result.frontmatter.type).toBe("skill");
+    assert.strictEqual(result.frontmatter["auto-trigger"], true);
+    assert.strictEqual(result.frontmatter.type, "skill");
   });
 });

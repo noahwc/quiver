@@ -1,11 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   addSkillToConfig,
   removeSkillFromConfig,
   globalConfigDir,
   globalCachePath,
   ensureGlobalConfig,
-} from "../../src/core/config.js";
+} from "../../src/core/config.ts";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
@@ -21,13 +22,16 @@ describe("config", () => {
       name: "grill-me",
       url: "github:mattpocock/skills/skills/productivity/grill-me",
     });
-    expect(withNew.skills).toHaveLength(2);
-    expect(withNew.skills[1].name).toBe("grill-me");
-    expect(withNew.skills[1].url).toBe("github:mattpocock/skills/skills/productivity/grill-me");
+    assert.strictEqual(withNew.skills.length, 2);
+    assert.strictEqual(withNew.skills[1].name, "grill-me");
+    assert.strictEqual(
+      withNew.skills[1].url,
+      "github:mattpocock/skills/skills/productivity/grill-me",
+    );
 
     const without = removeSkillFromConfig(withNew, "no-yap");
-    expect(without.skills).toHaveLength(1);
-    expect(without.skills[0].name).toBe("grill-me");
+    assert.strictEqual(without.skills.length, 1);
+    assert.strictEqual(without.skills[0].name, "grill-me");
   });
 
   it("does not duplicate skills", () => {
@@ -37,15 +41,18 @@ describe("config", () => {
     };
 
     const result = addSkillToConfig(base, { name: "no-yap", url: "builtin" });
-    expect(result.skills).toHaveLength(1);
+    assert.strictEqual(result.skills.length, 1);
   });
 
   it("globalConfigDir returns ~/.quiver", () => {
-    expect(globalConfigDir()).toBe(path.resolve(os.homedir(), ".quiver"));
+    assert.strictEqual(globalConfigDir(), path.resolve(os.homedir(), ".quiver"));
   });
 
   it("globalCachePath returns ~/.quiver/cache", () => {
-    expect(globalCachePath()).toBe(path.resolve(os.homedir(), ".quiver", "cache"));
+    assert.strictEqual(
+      globalCachePath(),
+      path.resolve(os.homedir(), ".quiver", "cache"),
+    );
   });
 
   it("ensureGlobalConfig creates config if missing", async () => {
@@ -57,15 +64,18 @@ describe("config", () => {
       const config = await ensureGlobalConfig([
         { name: "no-yap", url: "builtin" },
       ]);
-      expect(config.skills).toEqual([{ name: "no-yap", url: "builtin" }]);
+      assert.deepStrictEqual(config.skills, [{ name: "no-yap", url: "builtin" }]);
 
-      const raw = await fs.readFile(path.resolve(tmpDir, ".quiver", "quiver.json"), "utf-8");
-      expect(JSON.parse(raw).skills).toEqual([
+      const raw = await fs.readFile(
+        path.resolve(tmpDir, ".quiver", "quiver.json"),
+        "utf-8",
+      );
+      assert.deepStrictEqual(JSON.parse(raw).skills, [
         { name: "no-yap", url: "builtin" },
       ]);
 
       const existing = await ensureGlobalConfig([]);
-      expect(existing.skills).toEqual([{ name: "no-yap", url: "builtin" }]);
+      assert.deepStrictEqual(existing.skills, [{ name: "no-yap", url: "builtin" }]);
     } finally {
       process.env.HOME = origHome;
       await fs.rm(tmpDir, { recursive: true, force: true });

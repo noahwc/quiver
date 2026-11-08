@@ -5,7 +5,7 @@ import {
   type QuiverConfig,
   type QuiverConfigSkill,
   type Manifest,
-} from "./types.js";
+} from "./types.ts";
 
 const CONFIG_FILENAME = "quiver.json";
 const MANIFEST_FILENAME = "manifest.json";

@@ -1,13 +1,13 @@
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import { type QuiverConfigSkill } from "../core/types.js";
+import { type QuiverConfigSkill } from "../core/types.ts";
 import {
   discoverAllSkills,
   getInstalledSkillNames,
   getUninstalledSkills,
   toConfigSkill,
   type DiscoveredSkill,
-} from "../core/skill-discovery.js";
+} from "../core/skill-discovery.ts";
 
 const TYPE_LABEL: Record<string, string> = {
   instruction: "always-on",

@@ -2,12 +2,12 @@ import { execFileSync } from "node:child_process";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import matter from "gray-matter";
+import { parseFrontmatter } from "../core/frontmatter.ts";
 import {
   type QuiverConfigSkill,
   type SkillSource,
   parseSkillUrl,
-} from "../core/types.js";
+} from "../core/types.ts";
 
 const GITHUB_API_BASE = "https://api.github.com";
 const API_VERSION = "2022-11-28";
@@ -278,7 +278,7 @@ function describeError(
  * YAML parsers (e.g. pi.dev).
  */
 export function sanitizeFrontmatter(markdown: string): string {
-  const { data, content } = matter(markdown);
+  const { data, content } = parseFrontmatter(markdown);
   if (!data || Object.keys(data).length === 0) return markdown;
 
   const lines = ["---"];

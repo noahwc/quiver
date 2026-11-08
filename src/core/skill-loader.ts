@@ -6,8 +6,8 @@ import {
   type ResolvedSkill,
   type SkillSource,
   parseSkillUrl,
-} from "./types.js";
-import { parseSkill } from "../transpiler/parser.js";
+} from "./types.ts";
+import { parseSkill } from "../transpiler/parser.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

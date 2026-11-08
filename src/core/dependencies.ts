@@ -1,5 +1,5 @@
-import { type QuiverConfigSkill } from "./types.js";
-import { type DiscoveredSkill } from "./skill-discovery.js";
+import { type QuiverConfigSkill } from "./types.ts";
+import { type DiscoveredSkill } from "./skill-discovery.ts";
 
 /**
  * Expands a selection of skills with everything they depend on.

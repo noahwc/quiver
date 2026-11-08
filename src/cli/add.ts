@@ -1,14 +1,14 @@
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import { type QuiverConfigSkill } from "../core/types.js";
+import { type QuiverConfigSkill } from "../core/types.ts";
 import {
   readGlobalConfig,
   ensureGlobalConfig,
   addSkillToConfig,
   writeGlobalConfig,
-} from "../core/config.js";
-import { selectSkills, selectSkillsToAdd } from "../tui/skill-browser.js";
-import { sync } from "../core/sync.js";
+} from "../core/config.ts";
+import { selectSkills, selectSkillsToAdd } from "../tui/skill-browser.ts";
+import { sync } from "../core/sync.ts";
 
 interface AddOptions {
   dryRun?: boolean;

@@ -1,8 +1,8 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import matter from "gray-matter";
-import { type QuiverConfigSkill, type SkillType } from "./types.js";
+import { parseFrontmatter } from "./frontmatter.ts";
+import { type QuiverConfigSkill, type SkillType } from "./types.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -93,14 +93,14 @@ async function readBuiltinSkill(skillDir: string): Promise<DiscoveredSkill | nul
   const mdPath = path.resolve(skillDir, "SKILL.md");
   try {
     const raw = await fs.readFile(mdPath, "utf-8");
-    const { data } = matter(raw);
+    const { data } = parseFrontmatter(raw);
     return {
-      name: data.name,
-      description: data.description,
-      type: (data.type ?? "skill") as SkillType,
-      "auto-trigger": data["auto-trigger"] ?? true,
+      name: data.name as string,
+      description: data.description as string,
+      type: ((data.type as string | undefined) ?? "skill") as SkillType,
+      "auto-trigger": (data["auto-trigger"] as boolean | undefined) ?? true,
       url: "builtin",
-      requires: Array.isArray(data.requires) ? data.requires : undefined,
+      requires: Array.isArray(data.requires) ? (data.requires as string[]) : undefined,
     };
   } catch {
     return null;

@@ -3,8 +3,8 @@ import * as path from "node:path";
 import {
   type ResolvedSkill,
   SKILL_NAME_REGEX,
-} from "../core/types.js";
-import { renderSkillMarkdown } from "../transpiler/index.js";
+} from "../core/types.ts";
+import { renderSkillMarkdown } from "../transpiler/index.ts";
 
 export interface PortableSkill {
   name: string;
