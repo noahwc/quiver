@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import pc from "picocolors";
+import { styleText } from "node:util";
 import { readGlobalConfig } from "../core/config.ts";
 import { discoverAllSkills } from "../core/skill-discovery.ts";
 import { loadAllSkills } from "../core/skill-loader.ts";
@@ -63,7 +63,8 @@ export async function exportCommand(
 
   if (options.dryRun) {
     console.log(
-      pc.dim(
+      styleText(
+        "dim",
         `Would generate ${files.length} files for ${selection.skills.length} skills in ${outDir}`,
       ),
     );
@@ -71,25 +72,28 @@ export async function exportCommand(
   }
 
   console.log(
-    pc.green(
+    styleText(
+      "green",
       `Generated ${selection.skills.length} skills (${files.length} files) in ${outDir}`,
     ),
   );
   if (selection.excludedInstructions.length > 0) {
     console.log(
-      pc.yellow(
+      styleText(
+        "yellow",
         `Excluded always-on instructions (CLI-only): ${selection.excludedInstructions.join(", ")}`,
       ),
     );
   }
   if (options.subtree) {
     console.log(
-      pc.dim(
+      styleText(
+        "dim",
         "Subtree generated; point a root .claude-plugin/marketplace.json at it.",
       ),
     );
   } else {
-    console.log(pc.dim(`Publish to github.com/${DEFAULT_PLUGIN_REPO}`));
+    console.log(styleText("dim", `Publish to github.com/${DEFAULT_PLUGIN_REPO}`));
   }
 }
 
@@ -105,7 +109,8 @@ async function selectEntries(
     const skipped = config.skills.length - builtin.length;
     if (skipped > 0) {
       console.warn(
-        pc.yellow(
+        styleText(
+          "yellow",
           `Skipping ${skipped} third-party skill(s); only built-in skills are exported.`,
         ),
       );

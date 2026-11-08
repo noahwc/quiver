@@ -1,5 +1,5 @@
 import * as p from "@clack/prompts";
-import pc from "picocolors";
+import { styleText } from "node:util";
 import { type QuiverConfigSkill } from "../core/types.ts";
 import {
   readGlobalConfig,
@@ -15,7 +15,7 @@ interface AddOptions {
 }
 
 export async function add(options: AddOptions = {}): Promise<void> {
-  p.intro(pc.bgCyan(pc.black(" quiver add ")));
+  p.intro(styleText("bgCyan", styleText("black", " quiver add ")));
 
   let config = await readGlobalConfig();
 
@@ -27,7 +27,7 @@ export async function add(options: AddOptions = {}): Promise<void> {
   }
 
   if (newSkills.length === 0) {
-    p.outro(pc.yellow("No skills to add."));
+    p.outro(styleText("yellow", "No skills to add."));
     return;
   }
 
@@ -36,7 +36,7 @@ export async function add(options: AddOptions = {}): Promise<void> {
   } else {
     for (const skill of newSkills) {
       config = addSkillToConfig(config, skill);
-      p.log.step(`Added ${pc.cyan(skill.name)}`);
+      p.log.step(`Added ${styleText("cyan", skill.name)}`);
     }
     if (!options.dryRun) {
       await writeGlobalConfig(config);
@@ -45,5 +45,5 @@ export async function add(options: AddOptions = {}): Promise<void> {
 
   await sync({ dryRun: options.dryRun });
 
-  p.outro(pc.green("Done!"));
+  p.outro(styleText("green", "Done!"));
 }

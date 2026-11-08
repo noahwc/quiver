@@ -1,5 +1,5 @@
 import * as p from "@clack/prompts";
-import pc from "picocolors";
+import { styleText } from "node:util";
 import { type QuiverConfigSkill } from "../core/types.ts";
 import {
   discoverAllSkills,
@@ -29,8 +29,11 @@ function viewportSize(): number {
 }
 
 function skillOption(s: DiscoveredSkill) {
-  const sourceTag = s.url === "builtin" ? pc.dim("[builtin]") : pc.cyan("[3rd-party]");
-  const typeTag = pc.dim(`[${TYPE_LABEL[s.type] ?? s.type}]`);
+  const sourceTag =
+    s.url === "builtin"
+      ? styleText("dim", "[builtin]")
+      : styleText("cyan", "[3rd-party]");
+  const typeTag = styleText("dim", `[${TYPE_LABEL[s.type] ?? s.type}]`);
   return {
     value: s.name,
     label: s.name,

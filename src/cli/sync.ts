@@ -1,11 +1,11 @@
 import * as p from "@clack/prompts";
-import pc from "picocolors";
+import { styleText } from "node:util";
 import { sync } from "../core/sync.ts";
 
 export async function syncCommand(
   options: { refresh?: boolean; dryRun?: boolean } = {},
 ): Promise<void> {
-  p.intro(pc.bgCyan(pc.black(" quiver sync ")));
+  p.intro(styleText("bgCyan", styleText("black", " quiver sync ")));
 
   try {
     await sync(options);
@@ -15,5 +15,5 @@ export async function syncCommand(
     process.exit(1);
   }
 
-  p.outro(pc.green("Done!"));
+  p.outro(styleText("green", "Done!"));
 }

@@ -1,9 +1,9 @@
 import * as p from "@clack/prompts";
-import pc from "picocolors";
+import { styleText } from "node:util";
 import { readGlobalConfig } from "../core/config.ts";
 
 export async function list(): Promise<void> {
-  p.intro(pc.bgCyan(pc.black(" quiver list ")));
+  p.intro(styleText("bgCyan", styleText("black", " quiver list ")));
 
   const config = await readGlobalConfig();
   if (!config || config.skills.length === 0) {
@@ -14,11 +14,13 @@ export async function list(): Promise<void> {
   console.log("");
   for (const skill of config.skills) {
     const source =
-      skill.url === "builtin" ? pc.dim("[builtin]") : pc.cyan("[third-party]");
-    console.log(`  ${pc.bold(skill.name)} ${source}`);
-    console.log(`    ${pc.dim(skill.url)}`);
+      skill.url === "builtin"
+        ? styleText("dim", "[builtin]")
+        : styleText("cyan", "[third-party]");
+    console.log(`  ${styleText("bold", skill.name)} ${source}`);
+    console.log(`    ${styleText("dim", skill.url)}`);
   }
   console.log("");
 
-  p.outro(pc.green(`${config.skills.length} skill(s) installed.`));
+  p.outro(styleText("green", `${config.skills.length} skill(s) installed.`));
 }
