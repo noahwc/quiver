@@ -56,5 +56,12 @@
     "type": "skill",
     "auto-trigger": true,
     "url": "github:ImpactInc/noahs-ai-chest/skills/vue-reviewer"
+  },
+  {
+    "name": "slopsift",
+    "description": "Lint prose with the SlopSift CLI and interpret its structural AI-writing findings without guessing authorship. Use when reviewing or editing Markdown, documentation, website copy, release notes, plain text, or source-code comments for canned arguments, vague attribution, unsupported certainty, repetitive structure, AI vocabulary, and related writing tells.",
+    "type": "skill",
+    "auto-trigger": false,
+    "url": "github:NikhilVerma/writinglint/skills/slopsift"
   }
 ]
