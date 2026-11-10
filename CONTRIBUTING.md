@@ -44,7 +44,7 @@ quiver add
 - `plugin/` — generated Agent Plugins subtree; never hand-edit
 - `.claude-plugin/marketplace.json` — repo-root catalog pointing at `plugin/`
 - `registry.json` — catalog of external (third-party) skills available to install
-- `tests/` — node:test tests mirroring the `src/` structure
+- `tests/` — node:test tests mirroring the `src/` structure (`tests/skills/` covers bundled skill scripts)
 
 ## Adding a built-in skill
 

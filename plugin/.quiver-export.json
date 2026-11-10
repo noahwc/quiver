@@ -7,6 +7,7 @@
     "skills/commit-split/SKILL.md",
     "skills/commit-split/reference/hunk-staging.md",
     "skills/habit-miner/SKILL.md",
+    "skills/habit-miner/scripts/agent-cli",
     "skills/html-summary/SKILL.md",
     "skills/lint-first/SKILL.md",
     "skills/pr-steward/SKILL.md",

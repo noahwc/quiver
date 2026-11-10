@@ -5,6 +5,12 @@ type: instruction
 auto-trigger: true
 ---
 
+## agent-cli
+
+In a git repo, run `sh ~/.quiver/agent-cli/agent-cli` first and prefer its
+subcommands over re-reading files or guessing commands. Exit 3 means none
+exist for this repo yet; carry on normally. (Built by habit-miner.)
+
 ## Approved habits
 
 Follow each habit when its trigger context applies. (Managed by habit-miner;

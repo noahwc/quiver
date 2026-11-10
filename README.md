@@ -41,6 +41,10 @@ Clients that read more than one skills root (OpenCode and VS Code Local) may lis
 
 Your selection is saved to `~/.quiver/quiver.json`.
 
+The `habit-miner` skill also builds per-repo `agent-cli` subcommands from
+repeated session lookups. They live in `~/.quiver/agent-cli/<owner>/<repo>/`,
+never in the repo, and `quiver sync` leaves them alone.
+
 ### Third-party skills
 
 Skills can be pulled from GitHub using a URL of the form:

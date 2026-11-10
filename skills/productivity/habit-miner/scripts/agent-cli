@@ -1,0 +1,80 @@
+#!/bin/sh
+# agent-cli — per-repo agent shortcuts, stored outside the repo.
+# Subcommands live in $AGENT_CLI_HOME/<owner>/<repo>/<name> (POSIX sh files),
+# keyed by the normalized `origin` remote. Installed and populated by habit-miner.
+# Subcommands run with AGENT_CLI_REPO set to the repo's toplevel.
+set -eu
+
+root="${AGENT_CLI_HOME:-$HOME/.quiver/agent-cli}"
+
+usage() {
+  cat <<'EOF'
+usage: agent-cli [--json]              list this repo's subcommands
+       agent-cli <cmd> [args] [--json] run a subcommand (each has --help)
+       agent-cli --where               print this repo's subcommand dir
+exit: 0 ok, 2 usage, 3 no subcommands for this repo
+EOF
+}
+
+# owner/repo from origin; local/<toplevel-basename> without one.
+repo_key() {
+  top=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
+  url=$(git remote get-url origin 2>/dev/null || true)
+  if [ -n "$url" ]; then
+    key=$(printf '%s\n' "$url" | sed -E \
+      -e 's#^[a-z+]+://##' -e 's#^[^@/]*@##' -e 's#^[^/:]*[:/]##' \
+      -e 's#/+$##' -e 's#\.git$##' -e 's#^.*/([^/]+/[^/]+)$#\1#')
+  else
+    key="local/$(basename "$top")"
+  fi
+  case "$key" in
+    */*/* | /* | */ | */.* | .*/* | *[!A-Za-z0-9._/-]*) return 1 ;;
+    */*) printf '%s\n' "$key" ;;
+    *) return 1 ;;
+  esac
+}
+
+json_str() {
+  printf '"%s"' "$(printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+}
+
+key=$(repo_key) || { echo "agent-cli: not in a git repo with a usable origin" >&2; exit 3; }
+dir="$root/$key"
+
+case "${1:-}" in
+  -h | --help) usage; exit 0 ;;
+  --where) printf '%s\n' "$dir"; exit 0 ;;
+  "" | --json)
+    json=${1:-}
+    found=0; sep=""
+    [ -n "$json" ] && printf '['
+    for f in "$dir"/*; do
+      [ -f "$f" ] || continue
+      name=$(basename "$f")
+      summary=$(sed -n 's/^# summary: //p' "$f" | head -n 1)
+      found=1
+      if [ -n "$json" ]; then
+        printf '%s{"name":%s,"summary":%s}' "$sep" "$(json_str "$name")" "$(json_str "$summary")"
+        sep=","
+      else
+        printf '%s\t%s\n' "$name" "$summary"
+      fi
+    done
+    [ -n "$json" ] && printf ']\n'
+    if [ "$found" -eq 0 ]; then
+      [ -z "$json" ] && echo "agent-cli: no subcommands for $key" >&2
+      exit 3
+    fi
+    exit 0
+    ;;
+  -*) usage >&2; exit 2 ;;
+esac
+
+cmd=$1; shift
+case "$cmd" in
+  *[!a-z0-9-]* | -*) echo "agent-cli: invalid subcommand: $cmd" >&2; exit 2 ;;
+esac
+[ -f "$dir/$cmd" ] || { echo "agent-cli: unknown subcommand: $cmd (run agent-cli to list)" >&2; exit 2; }
+AGENT_CLI_REPO=$(git rev-parse --show-toplevel)
+export AGENT_CLI_REPO
+exec sh "$dir/$cmd" "$@"
