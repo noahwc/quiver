@@ -58,6 +58,13 @@
     "url": "github:ImpactInc/noahs-ai-chest/skills/vue-reviewer"
   },
   {
+    "name": "noah-voice",
+    "description": "Write all agent-authored GitHub text (review comments, thread replies, review summaries, PR titles and descriptions, commit messages, issues) in Noah's own voice: short, plain, collaborative, lightly hedged. Wording only; review content and repo conventions come from elsewhere.",
+    "type": "instruction",
+    "auto-trigger": true,
+    "url": "github:ImpactInc/noahs-ai-chest/skills/noah-voice"
+  },
+  {
     "name": "slopsift",
     "description": "Lint prose with the SlopSift CLI and interpret its structural AI-writing findings without guessing authorship. Use when reviewing or editing Markdown, documentation, website copy, release notes, plain text, or source-code comments for canned arguments, vague attribution, unsupported certainty, repetitive structure, AI vocabulary, and related writing tells.",
     "type": "skill",
